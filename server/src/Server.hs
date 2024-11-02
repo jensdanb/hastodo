@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Server where
 
@@ -11,7 +11,8 @@ import Servant
 import Api
 
 server :: Server API
-server = return "connected"
+server = do 
+  return "connected"
 
 app :: Application
 app = serve api server

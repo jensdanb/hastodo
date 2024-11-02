@@ -1,11 +1,14 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Api where
+module Api (api, API) where
 
 import Servant
 
-type API = "hello" :> Get '[JSON] String
+import Models (ServerConnected)
+
+type API = "serverConnected" :> Get '[JSON] String
 
 api :: Proxy API
 api = Proxy
+
