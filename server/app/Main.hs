@@ -5,4 +5,4 @@ import Server (serveTodo)
 main :: IO ()
 main = do
   putStrLn "Server started, awaiting requests..."
-  serveTodo
+  serveTodo 8080

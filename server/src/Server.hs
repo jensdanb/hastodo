@@ -17,5 +17,5 @@ server = do
 app :: Application
 app = serve api server
 
-serveTodo :: IO ()
-serveTodo = run 8080 (simpleCors app)
+serveTodo :: Int -> IO ()
+serveTodo portNr = run portNr (simpleCors app)
