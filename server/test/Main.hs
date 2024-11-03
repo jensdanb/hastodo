@@ -1,9 +1,10 @@
 module Main (main) where
 
-import E2E
+import Test.Hspec (hspec)
+import E2E (spec)
 
 main :: IO ()
 main = do 
-    putStrLn "Test suite not yet implemented."
-    
+    putStrLn "Test suite :"
+    hspec spec
 

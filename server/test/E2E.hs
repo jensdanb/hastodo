@@ -3,9 +3,9 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Eta reduce" #-}
 
-module E2E (spec) where 
+module E2E (spec) where
 
-import Data.Text 
+import Data.Text
 import GHC.Generics
 import Data.Aeson
 import Network.HTTP.Client (newManager, defaultManagerSettings)
@@ -19,13 +19,15 @@ import Servant.Client (
   )
 import Network.Wai (Application)
 import qualified Network.Wai.Handler.Warp as Warp
-import Test.Hspec (Spec, around, runIO, describe, shouldBe, it)
-
+import Test.Hspec (
+  Spec, around, runIO,
+  describe, shouldBe, it)
+import Data.Either (isLeft, isRight)
 
 import MetaApi (metaApi, MetaAPI)
 
 spec :: Spec
-spec = do 
+spec = do
   businessLogicSpec
   -- thirdPartyResourceSpec
   -- servantQuickCheckSpec
@@ -59,20 +61,22 @@ userServer :: Server UserAPI
 userServer = createUser
 
 withUserApp :: (Warp.Port -> IO ()) -> IO ()
-withUserApp action = 
+withUserApp action =
   Warp.testWithApplication (pure userApp) action
 
-businessLogicSpec :: Spec 
-businessLogicSpec = 
-  around withUserApp $ do 
+businessLogicSpec :: Spec
+businessLogicSpec =
+  around withUserApp $ do
     let testCreateUser = client (Proxy :: Proxy UserAPI)
 
-    baseUrl <- runIO $ parseBaseUrl "http:/localhost"
-    manager <- runIO $ newManager defaultManagerSettings
+    baseUrl <- runIO $ parseBaseUrl "http://localhost"
+    manager <- runIO $ newManager defaultManagerSettings
     let clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
 
     describe "POST /user" $ do
       it "should create a user with a high enough ID" $ \port -> do
         result <- runClientM (testCreateUser 50001) (clientEnv port)
         result `shouldBe` (Right $ User {name="some user", user_id=50001})
-        
+      it "will it fail with a too-small ID?" $ \port -> do
+        result <- runClientM (testCreateUser 4999) (clientEnv port)
+        isLeft result `shouldBe` True -- Expectation: Left (FailureResponse _)
