@@ -18,12 +18,13 @@ common warnings
 
 library
     import:           warnings
-    exposed-modules:  Server
-    other-modules:    Api
-                    , Models
+    exposed-modules:  Server, 
+                      MetaApi
+    other-modules:    Models
     -- other-extensions:
     build-depends:    base ^>=4.17.2.1 && <5
                     , time
+                    , text
                     , servant
                     , servant-server
                     , warp
@@ -49,11 +50,20 @@ executable hastodo
 test-suite hastodo-test
     import:           warnings
     default-language: Haskell2010
-    -- other-modules:
+    other-modules:    TestAPIs
     -- other-extensions:
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
     main-is:          Main.hs
     build-depends:
-        base ^>=4.17.2.1,
-        hastodo
+          base ^>=4.17.2.1
+        , hastodo
+        , text
+        , aeson
+        , servant
+        , servant-server
+        , warp
+        , wai
+        , wai-cors
+        , aeson
+        , monad-logger
