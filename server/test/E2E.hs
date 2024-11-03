@@ -44,23 +44,23 @@ spec = do
 
 type TestSubjectAPI = MockAPI :<|> MetaAPI
 
-type MockAPI = "user" :> Capture "userId" Integer :> Post '[JSON] User
+type MockAPI = "testuser" :> Capture "testUserId" Integer :> Post '[JSON] TestUser
 
-data User = User {
+data TestUser = TestUser {
   name :: Text
-  , user_id :: Integer
+  , testUser_id :: Integer
   } deriving (Eq, Show, Generic)
 
-instance FromJSON User
-instance ToJSON User
+instance FromJSON TestUser
+instance ToJSON TestUser
 
 -- Business logic -- 
 
-createUser :: Integer -> Handler User
-createUser userId = do
-  if userId > 5000
-    then pure $ User { name = "some user", user_id = userId }
-    else throwError $ err400 { errBody = "userId is too small" }
+createTestUser :: Integer -> Handler TestUser
+createTestUser testUserId = do
+  if testUserId > 5000
+    then pure $ TestUser { name = "some user", testUser_id = testUserId }
+    else throwError $ err400 { errBody = "testUserId is too small" }
 
 checkMeta :: Handler String
 checkMeta = pure "connected"
@@ -68,7 +68,7 @@ checkMeta = pure "connected"
 -- Testserver -- 
 
 testServer :: Server TestSubjectAPI
-testServer = createUser
+testServer = createTestUser
         :<|> checkMeta
 
 testApp :: Application
@@ -93,7 +93,7 @@ testSpec =
     describe "POST /user" $ do
       it "should create a user with a high enough ID" $ \port -> do
         result <- runClientM (testMockAPI 50001) (clientEnv port)
-        result `shouldBe` (Right $ User {name="some user", user_id=50001})
+        result `shouldBe` (Right $ TestUser {name="some user", testUser_id=50001})
       it "will it fail with a too-small ID?" $ \port -> do
         result <- runClientM (testMockAPI 4999) (clientEnv port)
         isLeft result `shouldBe` True -- Expectation: Left (FailureResponse _)
