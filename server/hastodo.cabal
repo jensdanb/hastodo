@@ -50,7 +50,7 @@ executable hastodo
 test-suite hastodo-test
     import:           warnings
     default-language: Haskell2010
-    other-modules:    TestAPIs
+    other-modules:    E2E
     -- other-extensions:
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
@@ -60,10 +60,13 @@ test-suite hastodo-test
         , hastodo
         , text
         , aeson
+        , http-client
         , servant
         , servant-server
+        , servant-client
         , warp
         , wai
         , wai-cors
         , aeson
         , monad-logger
+        , hspec
