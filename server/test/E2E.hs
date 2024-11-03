@@ -5,34 +5,46 @@
 
 module E2E (spec) where
 
-import Data.Text
-import GHC.Generics
-import Data.Aeson
+import Data.Text ( Text )
+import GHC.Generics ( Generic )
+import Data.Aeson ( FromJSON, ToJSON )
 import Network.HTTP.Client (newManager, defaultManagerSettings)
 import Servant
-import Servant.Client (
-    client
-  , parseBaseUrl
-  , mkClientEnv
-  , runClientM
-  , baseUrlPort
-  )
-import Network.Wai (Application)
+    ( Proxy(..),
+      serve,
+      err400,
+      throwError,
+      type (:<|>)(..),
+      Capture,
+      JSON,
+      type (:>),
+      Post,
+      Server,
+      Handler,
+      ServerError(errBody),
+      Application )
+import Servant.Client (client, parseBaseUrl,
+                      mkClientEnv, runClientM, baseUrlPort)
 import qualified Network.Wai.Handler.Warp as Warp
-import Test.Hspec (
-  Spec, around, runIO,
-  describe, shouldBe, it)
-import Data.Either (isLeft, isRight)
+import Test.Hspec (Spec, around, runIO,
+                  describe, shouldBe, it)
+import Data.Either (isLeft)
 
-import MetaApi (metaApi, MetaAPI)
+import MetaApi (MetaAPI)
+
+-- Exports: --
 
 spec :: Spec
 spec = do
-  businessLogicSpec
+  testSpec
   -- thirdPartyResourceSpec
   -- servantQuickCheckSpec
 
 -- Testsubject API -- 
+
+type TestSubjectAPI = MockAPI :<|> MetaAPI
+
+type MockAPI = "user" :> Capture "userId" Integer :> Post '[JSON] User
 
 data User = User {
   name :: Text
@@ -42,8 +54,6 @@ data User = User {
 instance FromJSON User
 instance ToJSON User
 
-type UserAPI = "user" :> Capture "userId" Integer :> Post '[JSON] User
-
 -- Business logic -- 
 
 createUser :: Integer -> Handler User
@@ -52,31 +62,44 @@ createUser userId = do
     then pure $ User { name = "some user", user_id = userId }
     else throwError $ err400 { errBody = "userId is too small" }
 
+checkMeta :: Handler String
+checkMeta = pure "connected"
+
 -- Testserver -- 
 
-userApp :: Application
-userApp = serve (Proxy :: Proxy UserAPI) userServer
+testServer :: Server TestSubjectAPI
+testServer = createUser
+        :<|> checkMeta
 
-userServer :: Server UserAPI
-userServer = createUser
+testApp :: Application
+testApp = serve (Proxy :: Proxy TestSubjectAPI) testServer
 
-withUserApp :: (Warp.Port -> IO ()) -> IO ()
-withUserApp action =
-  Warp.testWithApplication (pure userApp) action
+withTestApp :: (Warp.Port -> IO ()) -> IO ()
+withTestApp action = Warp.testWithApplication (pure testApp) action
 
-businessLogicSpec :: Spec
-businessLogicSpec =
-  around withUserApp $ do
-    let testCreateUser = client (Proxy :: Proxy UserAPI)
+-- Running the tests --
+
+testSpec :: Spec
+testSpec =
+  around withTestApp $ do
+    let testMockAPI = client (Proxy :: Proxy MockAPI)
+    let testMetaAPI = client (Proxy :: Proxy MetaAPI)
 
     baseUrl <- runIO $ parseBaseUrl "http://localhost"
     manager <- runIO $ newManager defaultManagerSettings
     let clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
 
+    -- MockAPI
     describe "POST /user" $ do
       it "should create a user with a high enough ID" $ \port -> do
-        result <- runClientM (testCreateUser 50001) (clientEnv port)
+        result <- runClientM (testMockAPI 50001) (clientEnv port)
         result `shouldBe` (Right $ User {name="some user", user_id=50001})
       it "will it fail with a too-small ID?" $ \port -> do
-        result <- runClientM (testCreateUser 4999) (clientEnv port)
+        result <- runClientM (testMockAPI 4999) (clientEnv port)
         isLeft result `shouldBe` True -- Expectation: Left (FailureResponse _)
+
+    -- MetaAPI
+    describe "GET /serverConnected" $ do
+      it "should return JSON plaintext: connected" $ \port -> do
+        result <- runClientM testMetaAPI (clientEnv port)
+        result `shouldBe` Right "connected"
