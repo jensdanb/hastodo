@@ -31,6 +31,7 @@ import Test.Hspec (Spec, around, runIO,
 import Data.Either (isLeft)
 
 import MetaApi (MetaAPI)
+import Server (serveMetaAPI)
 
 -- Exports: --
 
@@ -62,14 +63,11 @@ createTestUser testUserId = do
     then pure $ TestUser { name = "some user", testUser_id = testUserId }
     else throwError $ err400 { errBody = "testUserId is too small" }
 
-checkMeta :: Handler String
-checkMeta = pure "connected"
-
 -- Testserver -- 
 
 testServer :: Server TestSubjectAPI
 testServer = createTestUser
-        :<|> checkMeta
+        :<|> serveMetaAPI
 
 testApp :: Application
 testApp = serve (Proxy :: Proxy TestSubjectAPI) testServer

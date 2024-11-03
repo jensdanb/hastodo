@@ -8,14 +8,13 @@ import Network.Wai
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (simpleCors)
 import Servant
-import MetaApi (metaApi, MetaAPI)
+import MetaApi (MetaAPI)
 
-server :: Server MetaAPI
-server = do 
-  return "connected"
+serveMetaAPI :: Server MetaAPI
+serveMetaAPI = pure "connected"
 
 app :: Application
-app = serve metaApi server
+app = serve (Proxy :: Proxy MetaAPI) serveMetaAPI
 
 serveTodo :: Int -> IO ()
 serveTodo portNr = run portNr (simpleCors app)
