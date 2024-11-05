@@ -22,16 +22,26 @@ library
                       MetaApi
     other-modules:    Models
     -- other-extensions:
-    build-depends:    base ^>=4.17.2.1 && <5
+    build-depends:    base ^>=4.19.1.0 && <5
                     , time
                     , text
+                    , bytestring
+                    , directory
+                    , blaze
+                    , blaze-html
+                    , blaze-markup
+                    , attoparsec
                     , servant
                     , servant-server
                     , warp
+                    , http-media
                     , wai
                     , wai-cors
                     , aeson
                     , monad-logger
+                    , mtl
+                    , lucid
+                    , string-conversions
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -41,7 +51,7 @@ executable hastodo
     -- other-modules:
     -- other-extensions:
     build-depends:
-        base ^>=4.17.2.1,
+        base ^>=4.19.1.0 && <5,
         hastodo
 
     hs-source-dirs:   app
@@ -56,7 +66,7 @@ test-suite hastodo-test
     hs-source-dirs:   test
     main-is:          Main.hs
     build-depends:
-          base ^>=4.17.2.1
+          base ^>=4.19.1.0 && <5
         , hastodo
         , text
         , aeson
@@ -67,6 +77,5 @@ test-suite hastodo-test
         , warp
         , wai
         , wai-cors
-        , aeson
         , monad-logger
         , hspec
