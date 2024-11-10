@@ -1,6 +1,6 @@
 module Main where
 
-import Server (serveTodo) 
+import Api (serveTodo) 
 
 main :: IO ()
 main = do

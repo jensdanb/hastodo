@@ -30,52 +30,57 @@ import Test.Hspec (Spec, around, runIO,
                   describe, shouldBe, it)
 import Data.Either (isLeft)
 
-import MetaApi (MetaAPI)
-import Server (serveMetaAPI)
+import Models
+import Api (processMetaAPI, MetaAPI, TodoAPI, processTodoAPI)
 
 -- Exports: --
 
 spec :: Spec
 spec = do
   testSpec
+  -- todoSpec
   -- thirdPartyResourceSpec
   -- servantQuickCheckSpec
 
--- Testsubject API -- 
+--- October API --- 
 
-type TestSubjectAPI = MockAPI :<|> MetaAPI
+type OctoberAPI = MockAPI :<|> MetaAPI
 
-type MockAPI = "testuser" :> Capture "testUserId" Integer :> Post '[JSON] TestUser
+type MockAPI = "mockuser" :> Capture "mockUserId" Integer :> Post '[JSON] MockUser
 
-data TestUser = TestUser {
-  name :: Text
-  , testUser_id :: Integer
+data MockUser = MockUser {
+  mockName :: Text
+  , mockUser_id :: Integer
   } deriving (Eq, Show, Generic)
 
-instance FromJSON TestUser
-instance ToJSON TestUser
+instance FromJSON MockUser
+instance ToJSON MockUser
 
--- Business logic -- 
+-- 
 
-createTestUser :: Integer -> Handler TestUser
-createTestUser testUserId = do
-  if testUserId > 5000
-    then pure $ TestUser { name = "some user", testUser_id = testUserId }
-    else throwError $ err400 { errBody = "testUserId is too small" }
+-- type MainAPI = TodoAPI :<|> MetaAPI
 
--- Testserver -- 
+--- Business logic --- 
 
-testServer :: Server TestSubjectAPI
-testServer = createTestUser
-        :<|> serveMetaAPI
+createMockUser :: Integer -> Handler MockUser
+createMockUser mockUserId = do
+  if mockUserId > 5000
+    then pure $ MockUser { mockName = "some user", mockUser_id = mockUserId }
+    else throwError $ err400 { errBody = "mockUserId is too small" }
+
+--- Testserver --- 
+
+testServer :: Server OctoberAPI
+testServer = createMockUser
+        :<|> processMetaAPI
 
 testApp :: Application
-testApp = serve (Proxy :: Proxy TestSubjectAPI) testServer
+testApp = serve (Proxy :: Proxy OctoberAPI) testServer
 
 withTestApp :: (Warp.Port -> IO ()) -> IO ()
 withTestApp action = Warp.testWithApplication (pure testApp) action
 
--- Running the tests --
+--- Running the tests ---
 
 testSpec :: Spec
 testSpec =
@@ -91,7 +96,7 @@ testSpec =
     describe "POST /user" $ do
       it "should create a user with a high enough ID" $ \port -> do
         result <- runClientM (testMockAPI 50001) (clientEnv port)
-        result `shouldBe` (Right $ TestUser {name="some user", testUser_id=50001})
+        result `shouldBe` (Right $ MockUser {mockName="some user", mockUser_id=50001})
       it "will it fail with a too-small ID?" $ \port -> do
         result <- runClientM (testMockAPI 4999) (clientEnv port)
         isLeft result `shouldBe` True -- Expectation: Left (FailureResponse _)
@@ -101,3 +106,8 @@ testSpec =
       it "should return JSON plaintext: connected" $ \port -> do
         result <- runClientM testMetaAPI (clientEnv port)
         result `shouldBe` Right "connected"
+
+todoSpec :: Spec
+todoSpec =
+  around withTestApp $ do
+    undefined
