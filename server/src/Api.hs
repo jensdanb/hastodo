@@ -28,14 +28,17 @@ serveTodo portNr = run portNr (simpleCors app)
 --- TodoAPI --- 
 
 type TodoAPI = "new_todo" :> ReqBody '[JSON] Todo :> Post '[JSON] TodoMap
+          :<|> "todos" :> "list-all" :> Get '[JSON] TodoMap
 
 
 processTodoAPI :: TodoMap -> Server TodoAPI
 processTodoAPI todoMap = postTodo 
+                    :<|> getTodos
     where 
         postTodo :: Todo -> Handler TodoMap
         postTodo newTodo = return $ insertTodo todoMap newTodo
 
+        getTodos :: Handler TodoMap
+        getTodos = return todoMap
+
  
-
-

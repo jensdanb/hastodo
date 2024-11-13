@@ -28,8 +28,6 @@ library
                     , containers
                     , bytestring
                     , directory
-                    , blaze
-                    , blaze-html
                     , blaze-markup
                     , attoparsec
                     , servant
@@ -41,7 +39,6 @@ library
                     , aeson
                     , monad-logger
                     , mtl
-                    , lucid
                     , stm
                     , string-conversions
     hs-source-dirs:   src
