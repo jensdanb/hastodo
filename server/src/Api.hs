@@ -16,11 +16,11 @@ import Models (Todo(..), TodoMap, insertTodo)
 
 type MetaAPI = "serverConnected" :> Get '[JSON] String
 
-processMetaAPI :: Server MetaAPI
-processMetaAPI = return "connected"
+handleMetaAPI :: Server MetaAPI
+handleMetaAPI = return "connected"
 
 app :: Application
-app = serve (Proxy :: Proxy MetaAPI) processMetaAPI
+app = serve (Proxy :: Proxy MetaAPI) handleMetaAPI
 
 serveTodo :: Int -> IO ()
 serveTodo portNr = run portNr (simpleCors app)
@@ -31,14 +31,12 @@ type TodoAPI = "new_todo" :> ReqBody '[JSON] Todo :> Post '[JSON] TodoMap
           :<|> "todos" :> "list-all" :> Get '[JSON] TodoMap
 
 
-processTodoAPI :: TodoMap -> Server TodoAPI
-processTodoAPI todoMap = postTodo 
-                    :<|> getTodos
-    where 
-        postTodo :: Todo -> Handler TodoMap
-        postTodo newTodo = return $ insertTodo todoMap newTodo
+handleTodoAPI :: TodoMap -> Server TodoAPI
+handleTodoAPI todoMap = postTodo todoMap
+                    :<|> getTodos todoMap
 
-        getTodos :: Handler TodoMap
-        getTodos = return todoMap
+postTodo :: TodoMap -> Todo -> Handler TodoMap 
+postTodo todoMap newTodo = return $ insertTodo todoMap newTodo
 
- 
+getTodos :: TodoMap -> Handler TodoMap
+getTodos = return

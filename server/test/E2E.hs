@@ -31,7 +31,7 @@ import Test.Hspec (Spec, around, runIO,
 import Data.Either (isLeft)
 
 import Models
-import Api (processMetaAPI, MetaAPI, TodoAPI, processTodoAPI)
+import Api ( MetaAPI, handleMetaAPI ) 
 
 -- Exports: --
 
@@ -62,8 +62,8 @@ instance ToJSON MockUser
 
 --- Business logic --- 
 
-createMockUser :: Integer -> Handler MockUser
-createMockUser mockUserId = do
+handleMockAPI :: Integer -> Handler MockUser
+handleMockAPI mockUserId = do
   if mockUserId > 5000
     then pure $ MockUser { mockName = "some user", mockUser_id = mockUserId }
     else throwError $ err400 { errBody = "mockUserId is too small" }
@@ -71,8 +71,8 @@ createMockUser mockUserId = do
 --- Testserver --- 
 
 testServer :: Server OctoberAPI
-testServer = createMockUser
-        :<|> processMetaAPI
+testServer = handleMockAPI
+        :<|> handleMetaAPI
 
 testApp :: Application
 testApp = serve (Proxy :: Proxy OctoberAPI) testServer
@@ -92,20 +92,17 @@ testSpec =
     manager <- runIO $ newManager defaultManagerSettings
     let clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
 
-    -- MockAPI
-    describe "POST /user" $ do
+    -- OctoberAPI
+    describe "GET /serverConnected :<|> POST /user" $ do 
+      it "should return JSON plaintext: connected" $ \port -> do
+        result <- runClientM testMetaAPI (clientEnv port)
+        result `shouldBe` Right "connected"
       it "should create a user with a high enough ID" $ \port -> do
         result <- runClientM (testMockAPI 50001) (clientEnv port)
         result `shouldBe` (Right $ MockUser {mockName="some user", mockUser_id=50001})
       it "will it fail with a too-small ID?" $ \port -> do
         result <- runClientM (testMockAPI 4999) (clientEnv port)
         isLeft result `shouldBe` True -- Expectation: Left (FailureResponse _)
-
-    -- MetaAPI
-    describe "GET /serverConnected" $ do
-      it "should return JSON plaintext: connected" $ \port -> do
-        result <- runClientM testMetaAPI (clientEnv port)
-        result `shouldBe` Right "connected"
 
 todoSpec :: Spec
 todoSpec =
