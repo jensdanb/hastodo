@@ -19,7 +19,8 @@ common warnings
 library
     import:           warnings
     exposed-modules:  Api, 
-                      Models
+                      Models, 
+                      Plumbing
     -- other-modules:    
     -- other-extensions:
     build-depends:    base ^>=4.19.1.0 && <5
@@ -68,6 +69,7 @@ test-suite hastodo-test
           base ^>=4.19.1.0 && <5
         , hastodo
         , text
+        , containers
         , aeson
         , http-client
         , servant

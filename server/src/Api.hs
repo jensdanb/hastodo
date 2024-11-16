@@ -10,33 +10,46 @@ import Network.Wai ( Application )
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (simpleCors)
 import Servant
-import Models (Todo(..), TodoMap, insertTodo)
+import Models (Todo(..), TodoMap, insertTodo, initialState)
+import Plumbing (runServer)
 
---- MetaAPI --- 
+--- EPmeta --- 
 
-type MetaAPI = "serverConnected" :> Get '[JSON] String
+type EPmeta = "serverConnected" :> Get '[JSON] String
 
-handleMetaAPI :: Server MetaAPI
-handleMetaAPI = return "connected"
+metaEPHandler :: Server EPmeta
+metaEPHandler = return "connected"
 
 app :: Application
-app = serve (Proxy :: Proxy MetaAPI) handleMetaAPI
+app = serve (Proxy :: Proxy EPmeta) metaEPHandler
 
-serveTodo :: Int -> IO ()
-serveTodo portNr = run portNr (simpleCors app)
+runMetaServer :: Int -> IO ()
+runMetaServer = runServer app
 
 --- TodoAPI --- 
 
-type TodoAPI = "new_todo" :> ReqBody '[JSON] Todo :> Post '[JSON] TodoMap
-          :<|> "todos" :> "list-all" :> Get '[JSON] TodoMap
+type TodoAPI = EPpostTodo
+          :<|> EPgetTodos
 
 
-handleTodoAPI :: TodoMap -> Server TodoAPI
-handleTodoAPI todoMap = postTodo todoMap
+serveTodoAPI :: TodoMap -> Server TodoAPI
+serveTodoAPI todoMap = postTodo todoMap
                     :<|> getTodos todoMap
 
-postTodo :: TodoMap -> Todo -> Handler TodoMap 
+todoApp :: Application
+todoApp = serve (Proxy :: Proxy TodoAPI) (serveTodoAPI initialState)
+
+runTodoServer :: Int -> IO ()
+runTodoServer = runServer todoApp
+
+--- 
+
+type EPpostTodo = "postTodo" :> ReqBody '[JSON] Todo :> Post '[JSON] TodoMap
+
+postTodo :: TodoMap -> Todo -> Handler TodoMap
 postTodo todoMap newTodo = return $ insertTodo todoMap newTodo
+
+type EPgetTodos = "getTodos" :> "list-all" :> Get '[JSON] TodoMap
 
 getTodos :: TodoMap -> Handler TodoMap
 getTodos = return

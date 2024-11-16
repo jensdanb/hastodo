@@ -3,7 +3,7 @@
 
 module Models where
 
-import Data.Aeson (ToJSON)
+import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import Data.Text (Text)
 import Data.Map (Map)
@@ -30,7 +30,10 @@ data Todo = Todo
     } deriving (Eq, Show, Generic)
 
 instance ToJSON Todo
+instance FromJSON Todo
 
+initialState :: TodoMap
+initialState = Map.empty
 
 insertTodo :: TodoMap -> Todo -> TodoMap
 insertTodo todoMap todo@(Todo uuid' name' completed') = 
