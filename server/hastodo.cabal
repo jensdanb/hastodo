@@ -39,6 +39,7 @@ library
                     , wai-cors
                     , aeson
                     , monad-logger
+                    , transformers
                     , mtl
                     , stm
                     , string-conversions

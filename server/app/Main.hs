@@ -1,8 +1,9 @@
 module Main where
 
-import Api (runMetaServer, runTodoServer) 
+import Api (runStmServer) 
 
 main :: IO ()
 main = do
+  putStrLn "--- --- --- ---"
   putStrLn "Server started, awaiting requests..."
-  runMetaServer 8080
+  runStmServer 8080

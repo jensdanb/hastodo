@@ -28,17 +28,19 @@ import Test.Hspec (Spec, around, runIO,
                   describe, shouldBe, it)
 import Data.Either (isLeft)
 
-import Models
+import Models ( TodoMap, mockUUID, mockTodo )
 import Api
-import Plumbing
+    ( EPmeta,
+      metaEPHandler)
+import Plumbing ( withApp )
 import qualified Data.Map as Map
 
 -- Exports: --
 
 spec :: Spec
 spec = do
-  testSpec
-  todoSpec
+  octoberSpec
+  -- todoSpec
   -- thirdPartyResourceSpec
   -- servantQuickCheckSpec
 
@@ -78,8 +80,8 @@ withMockApp = withApp mockApp
 
 --- Running the tests ---
 
-testSpec :: Spec
-testSpec =
+octoberSpec :: Spec
+octoberSpec =
   around withMockApp $ do
     let testMockAPI = client (Proxy :: Proxy EPmockUser)
     let testEPmeta = client (Proxy :: Proxy EPmeta)
@@ -100,8 +102,12 @@ testSpec =
         result <- runClientM (testMockAPI 4999) (clientEnv port)
         isLeft result `shouldBe` True -- Expectation: Left (FailureResponse _)
 
---- Todo API ---
+--- STM Todo API --- 
 
+
+
+--- Todo API ---
+{-
 testApp :: TodoMap -> Application
 testApp todoMap = serve (Proxy :: Proxy TodoAPI) (serveTodoAPI todoMap)
 
@@ -114,9 +120,6 @@ todoSpec =
     let postTodoTester = client (Proxy :: Proxy EPpostTodo)
     let getTodosTester = client (Proxy :: Proxy EPgetTodos)
 
-    let mockUUID = "sgsgerjkg"
-    let mockTodo = Todo {uuid=mockUUID, name="Eat", completed=False}
-
     baseUrl <- runIO $ parseBaseUrl "http://localhost"
     manager <- runIO $ newManager defaultManagerSettings
     let clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
@@ -126,5 +129,6 @@ todoSpec =
         result <- runClientM getTodosTester (clientEnv port)
         result `shouldBe` Right Map.empty
       it "should insert a Todo" $ \port -> do
-        result <- runClientM (postTodoTester mockTodo) (clientEnv port)
+        result <- runClientM (postTodoTester (mockUUID, mockTodo)) (clientEnv port)
         result `shouldBe` Right (Map.fromList [(mockUUID, mockTodo)])
+-}

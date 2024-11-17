@@ -5,13 +5,13 @@
 
 module Api where
 
-import Data.Text (Text)
-import Network.Wai ( Application )
-import Network.Wai.Handler.Warp (run)
-import Network.Wai.Middleware.Cors (simpleCors)
 import Servant
-import Models (Todo(..), TodoMap, insertTodo, initialState)
+import Models (TodoMap, State(State, todos), initialize)
 import Plumbing (runServer)
+import Control.Concurrent.STM (atomically, readTVar, writeTVar, readTVarIO)
+import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
+import Control.Monad.Reader (liftIO)
+import qualified Data.Map as Map
 
 --- EPmeta --- 
 
@@ -20,36 +20,46 @@ type EPmeta = "serverConnected" :> Get '[JSON] String
 metaEPHandler :: Server EPmeta
 metaEPHandler = return "connected"
 
-app :: Application
-app = serve (Proxy :: Proxy EPmeta) metaEPHandler
+--- STM Todo Server --- 
 
-runMetaServer :: Int -> IO ()
-runMetaServer = runServer app
+type AppM = ReaderT State Handler
 
---- TodoAPI --- 
+stmApp :: State -> Application
+stmApp state = serve stmAPI $ hoistServer stmAPI (nt state) serveSTM
 
-type TodoAPI = EPpostTodo
-          :<|> EPgetTodos
+nt :: State -> AppM a -> Handler a
+nt state x = runReaderT x state
 
+runStmServer :: Int -> IO ()
+runStmServer port = do 
+    startState <- initialize
+    runServer (stmApp (State startState)) port
 
-serveTodoAPI :: TodoMap -> Server TodoAPI
-serveTodoAPI todoMap = postTodo todoMap
-                    :<|> getTodos todoMap
+--- STM TodoAPI toplevel --- 
 
-todoApp :: Application
-todoApp = serve (Proxy :: Proxy TodoAPI) (serveTodoAPI initialState)
+type STMAPI = STMpost
+        :<|> STMget
 
-runTodoServer :: Int -> IO ()
-runTodoServer = runServer todoApp
+serveSTM :: ServerT STMAPI AppM
+serveSTM = addTodo
+        :<|> stmGet
 
---- 
+stmAPI :: Proxy STMAPI
+stmAPI = Proxy
 
-type EPpostTodo = "postTodo" :> ReqBody '[JSON] Todo :> Post '[JSON] TodoMap
+--- STM TodoAPI endpoints ---
 
-postTodo :: TodoMap -> Todo -> Handler TodoMap
-postTodo todoMap newTodo = return $ insertTodo todoMap newTodo
+type STMpost = "stmPost" :> ReqBody '[JSON] TodoMap :> PostCreated '[JSON] TodoMap
 
-type EPgetTodos = "getTodos" :> "list-all" :> Get '[JSON] TodoMap
+addTodo :: TodoMap -> AppM TodoMap
+addTodo newTodo = do
+    State{todos = todoVar} <- ask
+    liftIO $ atomically $ readTVar todoVar >>= writeTVar todoVar . Map.union newTodo
+    return newTodo
 
-getTodos :: TodoMap -> Handler TodoMap
-getTodos = return
+type STMget = "stmGet" :> Get '[JSON] TodoMap
+
+stmGet :: AppM TodoMap
+stmGet = do
+    State{todos = todoVar} <- ask
+    liftIO $ readTVarIO todoVar
