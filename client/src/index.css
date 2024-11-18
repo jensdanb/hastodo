@@ -1,68 +1,306 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+*:focus-visible {
+  outline: 1.4px dashed var(--primary-color);
+  outline-offset: 0;
 }
-a:hover {
-  color: #535bf2;
+html {
+  font: 62.5% / 1.15 sans-serif;
 }
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+h1,
+h2 {
+  margin-bottom: 0;
 }
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+ul {
+  list-style: none;
+  padding: 0;
 }
-
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  -moz-osx-font-smoothing: inherit;
+  -webkit-font-smoothing: inherit;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  margin: 0;
+  overflow: visible;
+  padding: 0;
+  width: auto;
+}
+button::-moz-focus-inner {
+  border: 0;
+}
+button,
+input,
+optgroup,
+select,
+textarea {
   font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+  font-size: 100%;
+  line-height: 1.15;
+  margin: 0;
 }
-button:hover {
-  border-color: #646cff;
+button,
+input {
+  overflow: visible;
+  background-color: var(--content-background-color);
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+input[type="text"] {
+  border-radius: 0.3em;
+}
+body {
+  background-color: var(--site-background-color);
+  color: var(--text-color);
+  font:
+    1.6rem/1.25 Arial,
+    sans-serif;
+  margin: 0 auto;
+  max-width: 68rem;
+  width: 100%;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: hsl(0, 0%, 92%);
+@media screen and (min-width: 620px) {
+  body {
+    font-size: 1.9rem;
+    line-height: 1.31579;
   }
 }
+/* End resets */
+/* Global styles */
+.form-group > input[type="text"] {
+  display: inline-block;
+  margin-top: 0.4rem;
+}
+.btn {
+  background-color: var(--primary-color);
+  cursor: pointer;
+  padding: 0.8rem 1rem 0.7rem;
+  text-transform: capitalize;
+  border-radius: 0.3em;
+}
+.btn:hover {
+  text-decoration: underline;
+}
+.btn.toggle-btn {
+  text-decoration: underline;
+}
+.btn__danger {
+  background-color: var(--accent-color);
+}
+.btn__strong {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: var(--contrast-primary);
+}
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+}
+.btn-group > * {
+  flex: 1 1 49%;
+}
+.btn-group > * + * {
+  margin-left: 0.8rem;
+}
+.label-wrapper {
+  flex: 0 0 100%;
+  margin: 0;
+  text-align: center;
+}
+.visually-hidden {
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  overflow: hidden;
+  position: absolute !important;
+  white-space: nowrap;
+  width: 1px;
+}
+[class*="stack"] > * {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+.stack-small > * + * {
+  margin-top: 1.25rem;
+}
+.stack-large > * + * {
+  margin-top: 2.5rem;
+}
+@media screen and (min-width: 550px) {
+  .stack-small > * + * {
+    margin-top: 1.4rem;
+  }
+  .stack-large > * + * {
+    margin-top: 2.8rem;
+  }
+}
+.stack-exception {
+  margin-top: 1.2rem;
+}
+/* End global styles */
+/* General app styles */
+
+.navbar {
+  direction: ltr;
+  padding: 0rem;
+  position: static;
+  top: auto;
+  justify-content: space-between;
+}
+.navbar > * {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 50rem;
+  padding: auto;
+  display: flex;
+  justify-content: space-evenly;
+}
+.todoapp {
+  box-shadow:
+    0 2px 4px 0 rgb(0 0 0 / 20%),
+    0 2.5rem 5rem 0 rgb(0 0 0 / 10%);
+  margin: 2rem 0 4rem 0;
+  padding: 1rem;
+  position: relative;
+}
+@media screen and (min-width: 550px) {
+  .todoapp {
+    padding: 4rem;
+  }
+}
+.todoapp > * {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 50rem;
+}
+.todoapp > form {
+  max-width: 100%;
+}
+.todoapp > h1 {
+  display: block;
+  margin: 0;
+  margin-bottom: 1rem;
+  max-width: 100%;
+  text-align: center;
+}
+.label__lg {
+  line-height: 1.01567;
+  font-weight: 300;
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  text-align: center;
+}
+.input__lg {
+  border-width: 2px;
+  padding: 2rem;
+}
+.input__lg:focus-visible {
+  box-shadow: inset 0 0 0 2px;
+}
+[class*="__lg"] {
+  display: inline-block;
+  font-size: 1.9rem;
+  width: 100%;
+}
+[class*="__lg"]:not(:last-child) {
+  margin-bottom: 1rem;
+}
+@media screen and (min-width: 620px) {
+  [class*="__lg"] {
+    font-size: 2.4rem;
+  }
+}
+/* End general app styles */
+/* Todo item styles */
+.todo {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.todo > * {
+  flex: 0 0 100%;
+}
+.todo-text {
+  min-height: 4.4rem;
+  padding: 0.4rem 0.8rem;
+  width: 100%;
+}
+.todo-text:focus-visible {
+  box-shadow: inset 0 0 0 2px;
+}
+/* End todo item styles */
+/* Checkbox styles */
+.c-cb {
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+  clear: left;
+  display: block;
+  font-family: Arial, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  line-height: 1.25;
+  min-height: 44px;
+  padding-left: 40px;
+  position: relative;
+}
+.c-cb > label::before,
+.c-cb > input[type="checkbox"] {
+  box-sizing: border-box;
+  height: 44px;
+  left: -2px;
+  top: -2px;
+  width: 44px;
+}
+.c-cb > input[type="checkbox"] {
+  -webkit-font-smoothing: antialiased;
+  cursor: pointer;
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  z-index: 1;
+}
+.c-cb > label {
+  cursor: pointer;
+  display: inline-block;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin-bottom: 0;
+  padding: 8px 15px 5px;
+  touch-action: manipulation;
+}
+.c-cb > label::before {
+  background: transparent;
+  border: 2px solid currentcolor;
+  content: "";
+  position: absolute;
+}
+.c-cb > input[type="checkbox"]:focus-visible + label::before {
+  border-width: 4px;
+  outline: 3px dashed var(--primary-color);
+}
+.c-cb > label::after {
+  background: transparent;
+  border: solid;
+  border-width: 0 0 5px 5px;
+  border-top-color: transparent;
+  box-sizing: content-box;
+  content: "";
+  height: 7px;
+  left: 9px;
+  opacity: 0;
+  position: absolute;
+  top: 11px;
+  transform: rotate(-45deg);
+  width: 18px;
+}
+.c-cb > input[type="checkbox"]:checked + label::after {
+  opacity: 1;
+}
+/* End checkbox styles */
