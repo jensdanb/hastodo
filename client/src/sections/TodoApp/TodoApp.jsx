@@ -1,4 +1,4 @@
-import {useState} from "react"; 
+import {useState, useEffect} from "react"; 
 import {nanoid} from "nanoid";
 
 import {Todo, Form, FilterButton} from "./Components";
@@ -41,6 +41,46 @@ function TodoApp({initialTasks, initialFilter}) {
             />
     );
 
+    function dictToList (todoDict) {
+        let kvPairs = Object.entries(todoDict)
+        return kvPairs.map(([key, value]) => 
+         ({
+            id: key, 
+            name: value.name, 
+            completed: value.completed
+         })
+        )
+    }
+
+    function fetchServerTasks() {
+        useEffect(() => {
+          fetch('http://localhost:8080/stmGet')
+            .then(response => response.json())
+            .then(data => setTasks( dictToList(data) ))
+            .catch(error => {
+              console.error('Error: ', error)
+            }
+            );
+        }, []);
+      }
+    fetchServerTasks()
+
+    const [serverStatusMsg, setserverStatusMsg] = useState('');
+
+    function fetchServerStatusMsg() {
+      useEffect(() => {
+        fetch('http://localhost:8080/serverConnected')
+          .then(response => response.json())
+          .then(data => setserverStatusMsg(data))
+          .catch(error => {
+            console.error('Error: ', error)
+            setserverStatusMsg('not connected')
+          }
+          );
+      }, []);
+    }
+    fetchServerStatusMsg()
+
     // Functions
     function addTask(name) {
         const newTask = { id: `todo-${nanoid()}`, name, completed: false };
@@ -80,6 +120,7 @@ function TodoApp({initialTasks, initialFilter}) {
         <>
             <div className="todoapp stack-large content">
                 <h1>TodoMatic v1</h1>
+                <p>Server status: {serverStatusMsg}</p>
 
                 <Form onSubmit={addTask}/>
 
