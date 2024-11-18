@@ -6,7 +6,7 @@
 module Api where
 
 import Servant
-import Models (TodoMap, State(State, todos), initialize)
+import Models (TodoMap, State(State, todos), initialize, insertTodo, insertMocks)
 import Plumbing (runServer)
 import Control.Concurrent.STM (atomically, readTVar, writeTVar, readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
@@ -30,6 +30,13 @@ runStmServer port = do
     startState <- initialize
     runServer (stmApp (State startState)) port
 
+
+runStmServerWithMocks :: Int -> IO ()
+runStmServerWithMocks port = do 
+    startState <- initialize
+    liftIO $ insertMocks startState 
+    runServer (stmApp (State startState)) port
+
 ---
 --- API toplevel 
 --- 
@@ -40,7 +47,7 @@ type STMAPI = EPmeta
 
 serveSTM :: ServerT STMAPI AppM
 serveSTM = metaEPHandler
-        :<|> addTodo
+        :<|> stmPost
         :<|> stmGet
 
 stmAPI :: Proxy STMAPI
@@ -57,11 +64,11 @@ metaEPHandler = return "connected"
 
 type STMpost = "stmPost" :> ReqBody '[JSON] TodoMap :> PostCreated '[JSON] TodoMap
 
-addTodo :: TodoMap -> AppM TodoMap
-addTodo newTodo = do
+stmPost :: TodoMap -> AppM TodoMap
+stmPost newTodoMap = do
     State{todos = todoVar} <- ask
-    liftIO $ atomically $ readTVar todoVar >>= writeTVar todoVar . Map.union newTodo
-    return newTodo
+    liftIO $ insertTodo todoVar newTodoMap
+    return newTodoMap
 
 type STMget = "stmGet" :> Get '[JSON] TodoMap
 

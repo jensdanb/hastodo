@@ -1,9 +1,9 @@
 module Main where
 
-import Api (runStmServer) 
+import Api (runStmServer, runStmServerWithMocks) 
 
 main :: IO ()
 main = do
   putStrLn "--- --- --- ---"
   putStrLn "Server started, awaiting requests..."
-  runStmServer 8080
+  runStmServerWithMocks 8080

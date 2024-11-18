@@ -8,7 +8,12 @@ import GHC.Generics (Generic)
 import Data.Text (Text)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Control.Concurrent.STM (TVar, newTVarIO)
+import Control.Monad.Reader (liftIO)
+import Control.Concurrent.STM (TVar, newTVarIO, atomically, readTVar, writeTVar)
+
+--- 
+--- Definitions
+---
 
 newtype ServerConnected where
   ServerConnected :: {message :: String} -> ServerConnected
@@ -31,9 +36,26 @@ data Todo = Todo
 instance ToJSON Todo
 instance FromJSON Todo
 
---- Logic --- 
+--- 
+--- State
+--- 
 
---- Defaults and templates ---
+type TodoVar = TVar TodoMap
+newtype State = State { todos :: TVar TodoMap} deriving (Generic)
+
+--- 
+--- Logic
+--- 
+
+initialize :: IO TodoVar
+initialize = newTVarIO initialMap
+
+insertTodo :: TodoVar -> TodoMap -> IO ()
+insertTodo todoVar newTodo = atomically $ readTVar todoVar >>= writeTVar todoVar . Map.union newTodo
+
+--- 
+--- Defaults and templates
+--- 
 
 initialMap :: TodoMap
 initialMap = Map.empty
@@ -41,13 +63,20 @@ initialMap = Map.empty
 mockUUID :: UUID
 mockUUID = "sgsgerjkg"
 
+mockUUID2 :: UUID
+mockUUID2 = "ioreijojf"
+
+mockUUID3 :: UUID
+mockUUID3 = "eroigjowgjo"
+
 mockTodo :: Todo
-mockTodo = Todo {name="Eat", completed=False}
+mockTodo = Todo {name="Eat", completed=True}
 
---- State --- 
+mock2 = Todo {name="Sleep", completed=False}
 
-type TodoVar = TVar TodoMap
-newtype State = State { todos :: TVar TodoMap} deriving (Generic)
+mock3 :: Todo
+mock3 = Todo {name="Repeat", completed=False}
 
-initialize :: IO TodoVar
-initialize = newTVarIO initialMap
+insertMocks :: TodoVar -> IO ()
+insertMocks todoVar = do 
+  insertTodo todoVar (Map.fromList [(mockUUID, mockTodo), (mockUUID2, mock2), (mockUUID3, mock3)])
