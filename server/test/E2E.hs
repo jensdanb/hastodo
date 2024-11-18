@@ -29,9 +29,7 @@ import Test.Hspec (Spec, around, runIO,
 import Data.Either (isLeft)
 
 import Models ( TodoMap, mockUUID, mockTodo )
-import Api
-    ( EPmeta,
-      metaEPHandler)
+import Api (EPmeta)
 import Plumbing ( withApp )
 import qualified Data.Map as Map
 
@@ -65,10 +63,12 @@ postMockHandler mockUserId = do
     then pure $ MockUser { mockName = "some user", mockUser_id = mockUserId }
     else throwError $ err400 { errBody = "mockUserId is too small" }
 
+metaEPHandlerNonSTM :: Handler String
+metaEPHandlerNonSTM = return "connected"
 
 serveOctoberAPI :: Server OctoberAPI
 serveOctoberAPI = postMockHandler
-        :<|> metaEPHandler
+        :<|> metaEPHandlerNonSTM
 
 --- Mock Server --- 
 

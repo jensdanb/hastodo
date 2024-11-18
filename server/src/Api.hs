@@ -13,14 +13,9 @@ import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
 import qualified Data.Map as Map
 
---- EPmeta --- 
-
-type EPmeta = "serverConnected" :> Get '[JSON] String
-
-metaEPHandler :: Server EPmeta
-metaEPHandler = return "connected"
-
---- STM Todo Server --- 
+---
+--- Server 
+--- 
 
 type AppM = ReaderT State Handler
 
@@ -35,19 +30,30 @@ runStmServer port = do
     startState <- initialize
     runServer (stmApp (State startState)) port
 
---- STM TodoAPI toplevel --- 
+---
+--- API toplevel 
+--- 
 
-type STMAPI = STMpost
+type STMAPI = EPmeta
+        :<|> STMpost
         :<|> STMget
 
 serveSTM :: ServerT STMAPI AppM
-serveSTM = addTodo
+serveSTM = metaEPHandler
+        :<|> addTodo
         :<|> stmGet
 
 stmAPI :: Proxy STMAPI
 stmAPI = Proxy
 
---- STM TodoAPI endpoints ---
+--- 
+--- API endpoints
+--- 
+
+type EPmeta = "serverConnected" :> Get '[JSON] String
+
+metaEPHandler :: AppM String
+metaEPHandler = return "connected"
 
 type STMpost = "stmPost" :> ReqBody '[JSON] TodoMap :> PostCreated '[JSON] TodoMap
 
