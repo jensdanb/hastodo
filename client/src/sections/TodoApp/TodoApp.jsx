@@ -22,10 +22,10 @@ function TodoApp({initialTasks, initialFilter}) {
         .filter(FILTER_MAP[taskFilter])
         ?.map((task) => (
             <Todo
-                id={task.id}
+                id={task.todoId}
                 name={task.name}
                 completed={task.completed}
-                key={task.id}
+                key={task.todoId}
                 toggleTaskCompleted={toggleTaskCompleted}
                 editTask={editTask}
                 deleteTask={deleteTask}
@@ -41,21 +41,11 @@ function TodoApp({initialTasks, initialFilter}) {
             />
     );
 
-    function convertFromServer (todoList) {
-        return todoList.map(({todoId, name, completed}) => 
-         ({
-            id: todoId, 
-            name: name, 
-            completed: completed
-         })
-        )
-    }
-
     function fetchServerTasks() {
         useEffect(() => {
           fetch('http://localhost:8080/stmGet')
             .then(response => response.json())
-            .then(data => setTasks( convertFromServer(data) ))
+            .then(data => setTasks( data ))
             .catch(error => {
               console.error('Error: ', error)
             }
@@ -64,31 +54,46 @@ function TodoApp({initialTasks, initialFilter}) {
       }
     fetchServerTasks()
 
+    function postTodo (newTodo) {
+        fetch("http://localhost:8080/stmPost", {
+            method: "POST",
+            body: JSON.stringify(newTodo),
+            mode: 'no-cors',
+            headers: {
+                "Access-Control-Allow-Origin":"*",
+                "Content-type": "application/json; charset=UTF-8"
+            }
+          });
+        console.log(JSON.stringify(newTodo))
+          
+    }
+
     const [serverStatusMsg, setserverStatusMsg] = useState('');
 
     function fetchServerStatusMsg() {
-      useEffect(() => {
-        fetch('http://localhost:8080/serverConnected')
-          .then(response => response.json())
-          .then(data => setserverStatusMsg(data))
-          .catch(error => {
-            console.error('Error: ', error)
-            setserverStatusMsg('not connected')
-          }
-          );
-      }, []);
+        useEffect(() => {
+            fetch('http://localhost:8080/serverConnected')
+                .then(response => response.json())
+                .then(data => setserverStatusMsg(data))
+                .catch(error => {
+                    console.error('Error: ', error)
+                    setserverStatusMsg('not connected')
+                }
+                );
+        }, []);
     }
     fetchServerStatusMsg()
 
     // Functions
     function addTask(name) {
-        const newTask = { id: `todo-${nanoid()}`, name, completed: false };
+        const newTask = { todoId: `todo-${nanoid()}`, name, completed: false };
         setTasks([...tasks, newTask]);
+        postTodo(newTask)
     }
     
     function toggleTaskCompleted(id) {
         function toggleIfToggled (task) {
-            if (task.id === id) {
+            if (task.todoId === id) {
                 return { ...task, completed: !task.completed };
             } else return task;
         }
@@ -98,7 +103,7 @@ function TodoApp({initialTasks, initialFilter}) {
 
     function editTask(id, newName) {
         function editIfEdited (task) {
-            if (task.id === id) {
+            if (task.todoId === id) {
                 return { ...task, name: newName };
             } else return task;
         }
@@ -107,7 +112,7 @@ function TodoApp({initialTasks, initialFilter}) {
     }
 
     function deleteTask(id) {
-        const remainingTasks = tasks.filter((task) => task.id !== id);
+        const remainingTasks = tasks.filter((task) => task.todoId !== id);
         setTasks(remainingTasks);
     }
 
