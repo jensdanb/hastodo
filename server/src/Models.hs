@@ -25,11 +25,13 @@ type UUID = Text
 type Name = Text
 type Active = Bool
 type TodoKeyValue = (UUID, Todo)
+type TodoList = [Todo]
 
 type TodoMap = Map UUID Todo
 
 data Todo = Todo
-    { name :: Name
+    { todoId :: UUID
+    , name :: Name
     , completed :: Active
     } deriving (Eq, Show, Generic)
 
@@ -40,25 +42,25 @@ instance FromJSON Todo
 --- State
 --- 
 
-type TodoVar = TVar TodoMap
-newtype State = State { todos :: TVar TodoMap} deriving (Generic)
+type TodoVar = TVar TodoList
+newtype State = State { todos :: TVar TodoList} deriving (Generic)
 
 --- 
 --- Logic
 --- 
 
 initialize :: IO TodoVar
-initialize = newTVarIO initialMap
+initialize = newTVarIO initialList
 
-insertTodo :: TodoVar -> TodoMap -> IO ()
-insertTodo todoVar newTodo = atomically $ readTVar todoVar >>= writeTVar todoVar . Map.union newTodo
+insertTodo :: TodoVar -> Todo -> IO ()
+insertTodo todoVar newTodo = atomically $ readTVar todoVar >>= writeTVar todoVar . (newTodo:)
 
 --- 
 --- Defaults and templates
 --- 
 
-initialMap :: TodoMap
-initialMap = Map.empty
+initialList :: TodoList
+initialList = []
 
 mockUUID :: UUID
 mockUUID = "sgsgerjkg"
@@ -70,13 +72,15 @@ mockUUID3 :: UUID
 mockUUID3 = "eroigjowgjo"
 
 mockTodo :: Todo
-mockTodo = Todo {name="Eat", completed=True}
+mockTodo = Todo {todoId="todo-1sgsgerjkg", name="Eat", completed=True}
 
-mock2 = Todo {name="Sleep", completed=False}
+mock2 = Todo {todoId="todo-2sigisgoe",name="Sleep", completed=False}
 
 mock3 :: Todo
-mock3 = Todo {name="Repeat", completed=False}
+mock3 = Todo {todoId="todo-3efkif",name="Repeat", completed=False}
 
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do 
-  insertTodo todoVar (Map.fromList [(mockUUID, mockTodo), (mockUUID2, mock2), (mockUUID3, mock3)])
+  insertTodo todoVar mockTodo
+  insertTodo todoVar mock2
+  insertTodo todoVar mock3

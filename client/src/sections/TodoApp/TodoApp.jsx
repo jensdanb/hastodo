@@ -41,13 +41,12 @@ function TodoApp({initialTasks, initialFilter}) {
             />
     );
 
-    function dictToList (todoDict) {
-        let kvPairs = Object.entries(todoDict)
-        return kvPairs.map(([key, value]) => 
+    function convertFromServer (todoList) {
+        return todoList.map(({todoId, name, completed}) => 
          ({
-            id: key, 
-            name: value.name, 
-            completed: value.completed
+            id: todoId, 
+            name: name, 
+            completed: completed
          })
         )
     }
@@ -56,7 +55,7 @@ function TodoApp({initialTasks, initialFilter}) {
         useEffect(() => {
           fetch('http://localhost:8080/stmGet')
             .then(response => response.json())
-            .then(data => setTasks( dictToList(data) ))
+            .then(data => setTasks( convertFromServer(data) ))
             .catch(error => {
               console.error('Error: ', error)
             }

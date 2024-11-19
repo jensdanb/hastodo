@@ -6,7 +6,7 @@
 module Api where
 
 import Servant
-import Models (TodoMap, State(State, todos), initialize, insertTodo, insertMocks)
+import Models (TodoMap, State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo)
 import Plumbing (runServer)
 import Control.Concurrent.STM (atomically, readTVar, writeTVar, readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
@@ -26,15 +26,15 @@ nt :: State -> AppM a -> Handler a
 nt state x = runReaderT x state
 
 runStmServer :: Int -> IO ()
-runStmServer port = do 
+runStmServer port = do
     startState <- initialize
     runServer (stmApp (State startState)) port
 
 
 runStmServerWithMocks :: Int -> IO ()
-runStmServerWithMocks port = do 
+runStmServerWithMocks port = do
     startState <- initialize
-    liftIO $ insertMocks startState 
+    liftIO $ insertMocks startState
     runServer (stmApp (State startState)) port
 
 ---
@@ -62,17 +62,17 @@ type EPmeta = "serverConnected" :> Get '[JSON] String
 metaEPHandler :: AppM String
 metaEPHandler = return "connected"
 
-type STMpost = "stmPost" :> ReqBody '[JSON] TodoMap :> PostCreated '[JSON] TodoMap
+type STMpost = "stmPost" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 
-stmPost :: TodoMap -> AppM TodoMap
-stmPost newTodoMap = do
+stmPost :: Todo -> AppM Todo
+stmPost newTodo = do
     State{todos = todoVar} <- ask
-    liftIO $ insertTodo todoVar newTodoMap
-    return newTodoMap
+    liftIO $ insertTodo todoVar newTodo
+    return newTodo
 
-type STMget = "stmGet" :> Get '[JSON] TodoMap
+type STMget = "stmGet" :> Get '[JSON] TodoList
 
-stmGet :: AppM TodoMap
+stmGet :: AppM TodoList
 stmGet = do
     State{todos = todoVar} <- ask
-    liftIO $ readTVarIO todoVar
+    liftIO $ reverse <$> readTVarIO todoVar
