@@ -6,12 +6,11 @@
 module Api where
 
 import Servant
-import Models (TodoMap, State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo)
-import Plumbing (runServer)
-import Control.Concurrent.STM (atomically, readTVar, writeTVar, readTVarIO)
+import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo)
+import Plumbing (runServerSimpleCors, runServerWithCors)
+import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
-import qualified Data.Map as Map
 
 ---
 --- Server 
@@ -28,14 +27,14 @@ nt state x = runReaderT x state
 runStmServer :: Int -> IO ()
 runStmServer port = do
     startState <- initialize
-    runServer (stmApp (State startState)) port
+    runServerWithCors (stmApp (State startState)) port
 
 
 runStmServerWithMocks :: Int -> IO ()
 runStmServerWithMocks port = do
     startState <- initialize
     liftIO $ insertMocks startState
-    runServer (stmApp (State startState)) port
+    runServerWithCors (stmApp (State startState)) port
 
 ---
 --- API toplevel 

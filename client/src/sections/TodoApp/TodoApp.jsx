@@ -58,9 +58,7 @@ function TodoApp({initialTasks, initialFilter}) {
         fetch("http://localhost:8080/stmPost", {
             method: "POST",
             body: JSON.stringify(newTodo),
-            mode: 'no-cors',
             headers: {
-                "Access-Control-Allow-Origin":"*",
                 "Content-type": "application/json; charset=UTF-8"
             }
           });

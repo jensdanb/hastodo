@@ -6,9 +6,6 @@ module Models where
 import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import Data.Text (Text)
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Control.Monad.Reader (liftIO)
 import Control.Concurrent.STM (TVar, newTVarIO, atomically, readTVar, writeTVar)
 
 --- 
@@ -26,8 +23,6 @@ type Name = Text
 type Active = Bool
 type TodoKeyValue = (UUID, Todo)
 type TodoList = [Todo]
-
-type TodoMap = Map UUID Todo
 
 data Todo = Todo
     { todoId :: UUID

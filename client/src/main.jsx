@@ -6,7 +6,6 @@ import './color.css'
 
 const initialTasks = [];
 
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <NavBar/>
