@@ -42,7 +42,6 @@ function TodoApp({initialTasks, initialFilter}) {
     );
 
     function fetchServerTasks() {
-        useEffect(() => {
           fetch('http://localhost:8080/stmGet')
             .then(response => response.json())
             .then(data => setTasks( data ))
@@ -50,26 +49,28 @@ function TodoApp({initialTasks, initialFilter}) {
               console.error('Error: ', error)
             }
             );
-        }, []);
       }
-    fetchServerTasks()
+    useEffect(() => {fetchServerTasks()}, []);
 
     function postTodo (newTodo) {
         fetch("http://localhost:8080/stmPost", {
-            method: "POST",
-            body: JSON.stringify(newTodo),
-            headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                method: "POST",
+                body: JSON.stringify(newTodo),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .catch(error => {
+                console.error('Error: ', error)
             }
-          });
+            );
         console.log(JSON.stringify(newTodo))
-          
     }
 
     const [serverStatusMsg, setserverStatusMsg] = useState('');
 
     function fetchServerStatusMsg() {
-        useEffect(() => {
+        
             fetch('http://localhost:8080/serverConnected')
                 .then(response => response.json())
                 .then(data => setserverStatusMsg(data))
@@ -78,9 +79,8 @@ function TodoApp({initialTasks, initialFilter}) {
                     setserverStatusMsg('not connected')
                 }
                 );
-        }, []);
     }
-    fetchServerStatusMsg()
+    useEffect(() => {fetchServerStatusMsg()}, []);
 
     // Functions
     function addTask(name) {
