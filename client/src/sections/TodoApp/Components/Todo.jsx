@@ -20,7 +20,7 @@ function EditingTodo({props, setIsEditing}) {
     function submitEdit(event) {
         event.preventDefault();
         if (newName != "") {
-            props.editTask(props.todoId, newName);
+            props.editTask(props.id, newName);
             setIsEditing(false);
         };
     }
@@ -31,7 +31,7 @@ function EditingTodo({props, setIsEditing}) {
                 
                 
                 <input 
-                    id={props.todoId}
+                    id={props.id}
                     className="todo-text"
                     type="text" 
                     value={newName}
@@ -61,13 +61,13 @@ function ViewTodo({props, setIsEditing}) {
         <div className="todo stack-small">
             <div className="c-cb">
                 <input 
-                    id={props.todoId} 
+                    id={props.id} 
                     type="checkbox" 
                     defaultChecked={props.completed} 
-                    onChange={() => props.toggleTaskCompleted(props.todoId)}
+                    onChange={() => props.toggleTaskCompleted(props.id)}
                 />
                 
-                <label className="todo-label" htmlFor={props.todoId}>
+                <label className="todo-label" htmlFor={props.id}>
                     {props.name}
                 </label>
             </div>
@@ -81,7 +81,7 @@ function ViewTodo({props, setIsEditing}) {
                 <button 
                     type="button" 
                     className="btn btn__strong" 
-                    onMouseDown={() => props.deleteTask(props.todoId)}
+                    onMouseDown={() => props.deleteTask(props.id)}
                     >
                     Delete 
                     <span className="visually-hidden">{props.name}</span>

@@ -22,6 +22,10 @@ library
                       Models, 
                       Plumbing
     -- other-modules:    
+    default-extensions: 
+                  NoFieldSelectors
+                , DuplicateRecordFields
+                , OverloadedRecordDot
     -- other-extensions:
     build-depends:    base ^>=4.19.1.0 && <5
                     , time

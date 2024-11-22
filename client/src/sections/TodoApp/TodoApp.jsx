@@ -22,10 +22,10 @@ function TodoApp({initialTasks, initialFilter}) {
         .filter(FILTER_MAP[taskFilter])
         ?.map((task) => (
             <Todo
-                id={task.todoId}
+                id={task.id}
                 name={task.name}
                 completed={task.completed}
-                key={task.todoId}
+                key={task.id}
                 toggleTaskCompleted={toggleTaskCompleted}
                 editTask={editTask}
                 deleteTask={deleteTask}
@@ -84,14 +84,14 @@ function TodoApp({initialTasks, initialFilter}) {
 
     // Functions
     function addTask(name) {
-        const newTask = { todoId: `todo-${nanoid()}`, name, completed: false };
+        const newTask = { id: `todo-${nanoid()}`, name, completed: false };
         setTasks([...tasks, newTask]);
         postTodo(newTask)
     }
     
     function toggleTaskCompleted(id) {
         function toggleIfToggled (task) {
-            if (task.todoId === id) {
+            if (task.id === id) {
                 return { ...task, completed: !task.completed };
             } else return task;
         }
@@ -101,7 +101,7 @@ function TodoApp({initialTasks, initialFilter}) {
 
     function editTask(id, newName) {
         function editIfEdited (task) {
-            if (task.todoId === id) {
+            if (task.id === id) {
                 return { ...task, name: newName };
             } else return task;
         }
@@ -110,7 +110,7 @@ function TodoApp({initialTasks, initialFilter}) {
     }
 
     function deleteTask(id) {
-        const remainingTasks = tasks.filter((task) => task.todoId !== id);
+        const remainingTasks = tasks.filter((task) => task.id !== id);
         setTasks(remainingTasks);
     }
 

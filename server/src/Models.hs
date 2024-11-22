@@ -3,20 +3,16 @@
 
 module Models where
 
-import Data.Aeson (ToJSON, FromJSON)
+import Data.Aeson (ToJSON (toJSON, toEncoding), Options (fieldLabelModifier))
+import Data.Aeson.Types (FromJSON (parseJSON), defaultOptions, genericParseJSON, genericToJSON, genericToEncoding)
 import GHC.Generics (Generic)
 import Data.Text (Text)
 import Control.Concurrent.STM (TVar, newTVarIO, atomically, readTVar, writeTVar)
+import Data.Char (toLower, toUpper)
 
 --- 
 --- Definitions
 ---
-
-newtype ServerConnected where
-  ServerConnected :: {message :: String} -> ServerConnected
-  deriving (Generic)
-
-instance ToJSON ServerConnected
 
 type UUID = Text
 type Name = Text
@@ -26,12 +22,27 @@ type TodoList = [Todo]
 
 data Todo = Todo
     { todoId :: UUID
-    , name :: Name
-    , completed :: Active
+    , todoName :: Name
+    , todoCompleted :: Active
     } deriving (Eq, Show, Generic)
 
-instance ToJSON Todo
-instance FromJSON Todo
+customOptionsToJSON :: String -> Options
+customOptionsToJSON typeLabel = defaultOptions { fieldLabelModifier = stripper }
+  where 
+    stripper :: String -> String
+    stripper = map toLower . drop (length typeLabel)
+
+instance ToJSON Todo where
+    toJSON     = genericToJSON $ customOptionsToJSON "todo"
+    toEncoding = genericToEncoding $ customOptionsToJSON "todo"
+
+customOptionsFromJSON :: String -> Options
+customOptionsFromJSON typeLabel = defaultOptions { fieldLabelModifier = prepender }
+  where 
+    prepender shortLabel = typeLabel <> (toUpper (head shortLabel) : tail shortLabel)
+
+instance FromJSON Todo where
+    parseJSON = genericParseJSON $customOptionsFromJSON "todo"
 
 --- 
 --- State
@@ -50,6 +61,14 @@ initialize = newTVarIO initialList
 insertTodo :: TodoVar -> Todo -> IO ()
 insertTodo todoVar newTodo = atomically $ readTVar todoVar >>= writeTVar todoVar . (newTodo:)
 
+{-
+changeTodoName :: TodoVar -> UUID -> Name -> IO ()
+changeTodoName todoVar todoId name = atomically $ readTVar todoVar >>= modifyTVar todoVar . (newTodo:)
+-}
+
+rename :: Todo -> Name -> Todo 
+rename todo name = todo {todoName=name}
+
 --- 
 --- Defaults and templates
 --- 
@@ -57,25 +76,17 @@ insertTodo todoVar newTodo = atomically $ readTVar todoVar >>= writeTVar todoVar
 initialList :: TodoList
 initialList = []
 
-mockUUID :: UUID
-mockUUID = "sgsgerjkg"
+mock1 :: Todo
+mock1 = Todo {todoId="todo-1sgsgerjkg", todoName="Eat", todoCompleted=True}
 
-mockUUID2 :: UUID
-mockUUID2 = "ioreijojf"
-
-mockUUID3 :: UUID
-mockUUID3 = "eroigjowgjo"
-
-mockTodo :: Todo
-mockTodo = Todo {todoId="todo-1sgsgerjkg", name="Eat", completed=True}
-
-mock2 = Todo {todoId="todo-2sigisgoe",name="Sleep", completed=False}
+mock2 :: Todo
+mock2 = Todo {todoId="todo-2sigisgoel", todoName="Sleep", todoCompleted=False}
 
 mock3 :: Todo
-mock3 = Todo {todoId="todo-3efkif",name="Repeat", completed=False}
+mock3 = Todo {todoId="todo-3efkiffieu", todoName="Repeat", todoCompleted=False}
 
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do 
-  insertTodo todoVar mockTodo
+  insertTodo todoVar mock1
   insertTodo todoVar mock2
   insertTodo todoVar mock3
