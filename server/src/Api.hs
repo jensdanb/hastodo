@@ -6,7 +6,7 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo)
+import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo(..), deleteTodo, UUID)
 import Plumbing (runServerSimpleCors, runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
@@ -43,11 +43,13 @@ runStmServerWithMocks port = do
 type STMAPI = EPmeta
         :<|> STMpost
         :<|> STMget
+        :<|> STMdelete
 
 serveSTM :: ServerT STMAPI AppM
 serveSTM = metaEPHandler
         :<|> stmPost
         :<|> stmGet
+        :<|> stmDelete
 
 stmAPI :: Proxy STMAPI
 stmAPI = Proxy
@@ -75,3 +77,11 @@ stmGet :: AppM TodoList
 stmGet = do
     State{todos = todoVar} <- ask
     liftIO $ reverse <$> readTVarIO todoVar
+
+type STMdelete = "stmDelete" :> ReqBody '[JSON] Todo :> Delete '[JSON] UUID
+
+stmDelete :: Todo -> AppM UUID
+stmDelete todo = do 
+    State{todos = todoVar} <- ask
+    liftIO $ deleteTodo todo.id todoVar
+    return todo.id

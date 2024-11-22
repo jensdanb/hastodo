@@ -6,8 +6,7 @@ module Models where
 import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import Data.Text (Text)
-import Control.Concurrent.STM (TVar, newTVarIO, atomically, readTVar, writeTVar, modifyTVar)
-import Data.List (deleteBy, findIndex)
+import Control.Concurrent.STM (TVar, newTVarIO, atomically, modifyTVar)
 
 --- 
 --- Definitions
