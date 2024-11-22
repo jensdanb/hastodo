@@ -14,6 +14,9 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function TodoApp({initialTasks, initialFilter}) {
     // State
+
+    const [serverStatusMsg, setserverStatusMsg] = useState('');
+
     const [tasks, setTasks] = useState(initialTasks);
 
     const [taskFilter, setTaskFilter] = useState(initialFilter);
@@ -41,6 +44,18 @@ function TodoApp({initialTasks, initialFilter}) {
             />
     );
 
+    function fetchServerStatusMsg() {
+        fetch('http://localhost:8080/serverConnected')
+            .then(response => response.json())
+            .then(data => setserverStatusMsg(data))
+            .catch(error => {
+                console.error('Error: ', error)
+                setserverStatusMsg('not connected')
+            }
+            );
+    }
+    useEffect(() => {fetchServerStatusMsg()}, []);
+
     function fetchServerTasks() {
           fetch('http://localhost:8080/stmGet')
             .then(response => response.json())
@@ -49,7 +64,7 @@ function TodoApp({initialTasks, initialFilter}) {
               console.error('Error: ', error)
             }
             );
-      }
+    }
     useEffect(() => {fetchServerTasks()}, []);
 
     function postTodo (newTodo) {
@@ -64,23 +79,21 @@ function TodoApp({initialTasks, initialFilter}) {
                 console.error('Error: ', error)
             }
             );
-        console.log(JSON.stringify(newTodo))
     }
 
-    const [serverStatusMsg, setserverStatusMsg] = useState('');
-
-    function fetchServerStatusMsg() {
-        
-            fetch('http://localhost:8080/serverConnected')
-                .then(response => response.json())
-                .then(data => setserverStatusMsg(data))
-                .catch(error => {
-                    console.error('Error: ', error)
-                    setserverStatusMsg('not connected')
+    function serverDeleteTodo (id) {
+        fetch("http://localhost:8080/stmDelete", {
+                method: "DELETE",
+                body: JSON.stringify(id),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
                 }
-                );
+            })
+            .catch(error => {
+                console.error('Error: ', error)
+            }
+            );
     }
-    useEffect(() => {fetchServerStatusMsg()}, []);
 
     // Functions
     function addTask(name) {
@@ -112,6 +125,7 @@ function TodoApp({initialTasks, initialFilter}) {
     function deleteTask(id) {
         const remainingTasks = tasks.filter((task) => task.id !== id);
         setTasks(remainingTasks);
+        serverDeleteTodo(id)
     }
 
     

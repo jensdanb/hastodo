@@ -78,10 +78,10 @@ stmGet = do
     State{todos = todoVar} <- ask
     liftIO $ reverse <$> readTVarIO todoVar
 
-type STMdelete = "stmDelete" :> ReqBody '[JSON] Todo :> Delete '[JSON] UUID
+type STMdelete = "stmDelete" :> ReqBody '[JSON] UUID :> Delete '[JSON] UUID
 
-stmDelete :: Todo -> AppM UUID
-stmDelete todo = do 
+stmDelete :: UUID -> AppM UUID
+stmDelete uuid = do 
     State{todos = todoVar} <- ask
-    liftIO $ deleteTodo todo.id todoVar
-    return todo.id
+    liftIO $ deleteTodo uuid todoVar
+    return uuid

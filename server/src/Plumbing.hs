@@ -15,7 +15,7 @@ runServerSimpleCors = runServer simpleCors
 
 myCorsPolicy :: Network.Wai.Middleware.Cors.CorsResourcePolicy
 myCorsPolicy = simpleCorsResourcePolicy   { corsOrigins = Just (["http://localhost:5173"],  True)
-                                    , corsMethods = ["OPTIONS", "GET", "PUT", "POST"]
+                                    , corsMethods = ["OPTIONS", "GET", "PUT", "POST", "DELETE"]
                                     , corsRequestHeaders = ["Authorization", "Content-Type"] }
 
 myCors :: Middleware
