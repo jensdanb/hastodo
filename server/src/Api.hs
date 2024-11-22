@@ -66,7 +66,7 @@ type STMpost = "stmPost" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 stmPost :: Todo -> AppM Todo
 stmPost newTodo = do
     State{todos = todoVar} <- ask
-    liftIO $ insertTodo todoVar newTodo
+    liftIO $ insertTodo newTodo todoVar
     return newTodo
 
 type STMget = "stmGet" :> Get '[JSON] TodoList

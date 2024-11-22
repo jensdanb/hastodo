@@ -6,7 +6,8 @@ module Models where
 import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import Data.Text (Text)
-import Control.Concurrent.STM (TVar, newTVarIO, atomically, readTVar, writeTVar)
+import Control.Concurrent.STM (TVar, newTVarIO, atomically, readTVar, writeTVar, modifyTVar)
+import Data.List (deleteBy, findIndex)
 
 --- 
 --- Definitions
@@ -33,30 +34,34 @@ instance FromJSON Todo
 type TodoVar = TVar TodoList
 newtype State = State { todos :: TVar TodoList} deriving (Generic)
 
+initialize :: IO TodoVar
+initialize = newTVarIO []
+
 --- 
 --- Logic
 --- 
 
-initialize :: IO TodoVar
-initialize = newTVarIO initialList
+modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
+modifyTodoList f tVar = atomically $ modifyTVar tVar f
 
-insertTodo :: TodoVar -> Todo -> IO ()
-insertTodo todoVar newTodo = atomically $ readTVar todoVar >>= writeTVar todoVar . (newTodo:)
+insertTodo :: Todo -> TodoVar -> IO ()
+insertTodo newTodo = modifyTodoList (newTodo:)
+
+deleteTodo :: UUID -> TodoVar -> IO ()
+deleteTodo uuid = modifyTodoList (filter ((/= uuid) . (.id)))
+
 
 {-
 changeTodoName :: TodoVar -> UUID -> Name -> IO ()
 changeTodoName todoVar todoId name = atomically $ readTVar todoVar >>= modifyTVar todoVar . (newTodo:)
 -}
 
-rename :: Todo -> Name -> Todo 
+rename :: Todo -> Name -> Todo
 rename todo name = todo {name=name}
 
 --- 
 --- Defaults and templates
 --- 
-
-initialList :: TodoList
-initialList = []
 
 mock1 :: Todo
 mock1 = Todo {id="todo-1sgsgerjkg", name="Eat", completed=True}
@@ -68,7 +73,7 @@ mock3 :: Todo
 mock3 = Todo {id="todo-3efkiffieu", name="Repeat", completed=False}
 
 insertMocks :: TodoVar -> IO ()
-insertMocks todoVar = do 
-  insertTodo todoVar mock1
-  insertTodo todoVar mock2
-  insertTodo todoVar mock3
+insertMocks todoVar = do
+  insertTodo mock2 todoVar
+  insertTodo mock3 todoVar
+  insertTodo mock1 todoVar
