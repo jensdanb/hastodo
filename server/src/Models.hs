@@ -3,46 +3,28 @@
 
 module Models where
 
-import Data.Aeson (ToJSON (toJSON, toEncoding), Options (fieldLabelModifier))
-import Data.Aeson.Types (FromJSON (parseJSON), defaultOptions, genericParseJSON, genericToJSON, genericToEncoding)
+import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import Data.Text (Text)
 import Control.Concurrent.STM (TVar, newTVarIO, atomically, readTVar, writeTVar)
-import Data.Char (toLower, toUpper)
 
 --- 
 --- Definitions
 ---
-
-type UUID = Text
-type Name = Text
-type Active = Bool
 type TodoKeyValue = (UUID, Todo)
 type TodoList = [Todo]
 
+type UUID = Text
+type Name = Text
+
 data Todo = Todo
-    { todoId :: UUID
-    , todoName :: Name
-    , todoCompleted :: Active
+    { id :: UUID
+    , name :: Name
+    , completed :: Bool
     } deriving (Eq, Show, Generic)
 
-customOptionsToJSON :: String -> Options
-customOptionsToJSON typeLabel = defaultOptions { fieldLabelModifier = stripper }
-  where 
-    stripper :: String -> String
-    stripper = map toLower . drop (length typeLabel)
-
-instance ToJSON Todo where
-    toJSON     = genericToJSON $ customOptionsToJSON "todo"
-    toEncoding = genericToEncoding $ customOptionsToJSON "todo"
-
-customOptionsFromJSON :: String -> Options
-customOptionsFromJSON typeLabel = defaultOptions { fieldLabelModifier = prepender }
-  where 
-    prepender shortLabel = typeLabel <> (toUpper (head shortLabel) : tail shortLabel)
-
-instance FromJSON Todo where
-    parseJSON = genericParseJSON $customOptionsFromJSON "todo"
+instance ToJSON Todo
+instance FromJSON Todo
 
 --- 
 --- State
@@ -67,7 +49,7 @@ changeTodoName todoVar todoId name = atomically $ readTVar todoVar >>= modifyTVa
 -}
 
 rename :: Todo -> Name -> Todo 
-rename todo name = todo {todoName=name}
+rename todo name = todo {name=name}
 
 --- 
 --- Defaults and templates
@@ -77,13 +59,13 @@ initialList :: TodoList
 initialList = []
 
 mock1 :: Todo
-mock1 = Todo {todoId="todo-1sgsgerjkg", todoName="Eat", todoCompleted=True}
+mock1 = Todo {id="todo-1sgsgerjkg", name="Eat", completed=True}
 
 mock2 :: Todo
-mock2 = Todo {todoId="todo-2sigisgoel", todoName="Sleep", todoCompleted=False}
+mock2 = Todo {id="todo-2sigisgoel", name="Sleep", completed=False}
 
 mock3 :: Todo
-mock3 = Todo {todoId="todo-3efkiffieu", todoName="Repeat", todoCompleted=False}
+mock3 = Todo {id="todo-3efkiffieu", name="Repeat", completed=False}
 
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do 
