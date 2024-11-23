@@ -42,12 +42,6 @@ initialize = newTVarIO []
 --- Logic
 --- 
 
-matchingId :: UUID -> Todo -> Bool
-matchingId uuid todo = uuid == todo.id
-
-findById :: UUID -> TodoList -> Maybe Todo
-findById uuid = find (matchingId uuid)
-
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
 
@@ -71,7 +65,12 @@ replaceTodo newTodo = modifyTodoList (map replaceIfSameId)
   where
     replaceIfSameId oldTodo = if oldTodo.id == newTodo.id then newTodo else oldTodo
 
-{-
+{- Orphaned code
+matchingId :: UUID -> Todo -> Bool
+matchingId uuid todo = uuid == todo.id
+
+findById :: UUID -> TodoList -> Maybe Todo
+findById uuid = find (matchingId uuid)
 changeTodoName :: TodoVar -> UUID -> Name -> IO ()
 changeTodoName todoVar todoId name = atomically $ readTVar todoVar >>= modifyTVar todoVar . (newTodo:)
 -}
