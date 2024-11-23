@@ -7,7 +7,6 @@ import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import Data.Text (Text)
 import Control.Concurrent.STM (TVar, newTVarIO, atomically, modifyTVar)
-import Data.List (find)
 
 --- 
 --- Definitions
@@ -71,8 +70,7 @@ matchingId uuid todo = uuid == todo.id
 
 findById :: UUID -> TodoList -> Maybe Todo
 findById uuid = find (matchingId uuid)
-changeTodoName :: TodoVar -> UUID -> Name -> IO ()
-changeTodoName todoVar todoId name = atomically $ readTVar todoVar >>= modifyTVar todoVar . (newTodo:)
+
 -}
 
 rename :: Todo -> Name -> Todo
@@ -93,6 +91,6 @@ mock3 = Todo {id="todo-3efkiffieu", name="Repeat", completed=False}
 
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do
+  insertTodo mock1 todoVar
   insertTodo mock2 todoVar
   insertTodo mock3 todoVar
-  insertTodo mock1 todoVar

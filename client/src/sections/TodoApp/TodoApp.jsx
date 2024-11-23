@@ -57,7 +57,7 @@ function TodoApp({initialTasks, initialFilter}) {
     useEffect(() => {fetchServerStatusMsg()}, []);
 
     function fetchServerTasks() {
-          fetch('http://localhost:8080/stmGet')
+          fetch('http://localhost:8080/getTodos')
             .then(response => response.json())
             .then(data => setTasks( data ))
             .catch(error => {
@@ -68,7 +68,7 @@ function TodoApp({initialTasks, initialFilter}) {
     useEffect(() => {fetchServerTasks()}, []);
 
     function postTodo (newTodo) {
-        fetch("http://localhost:8080/stmPost", {
+        fetch("http://localhost:8080/postTodo", {
                 method: "POST",
                 body: JSON.stringify(newTodo),
                 headers: {
@@ -82,7 +82,7 @@ function TodoApp({initialTasks, initialFilter}) {
     }
 
     function serverDeleteTodo (id) {
-        fetch("http://localhost:8080/stmDelete", {
+        fetch("http://localhost:8080/delTodo", {
                 method: "DELETE",
                 body: JSON.stringify(id),
                 headers: {
@@ -96,7 +96,7 @@ function TodoApp({initialTasks, initialFilter}) {
     }
 
     function serverPutTodo (id, toggle, newName) {
-        fetch("http://localhost:8080/stmPut", {
+        fetch("http://localhost:8080/putTodo", {
                 method: "PUT",
                 body: JSON.stringify([id, toggle, newName]),
                 headers: {
@@ -147,12 +147,12 @@ function TodoApp({initialTasks, initialFilter}) {
 
     
     // Visuals
-    const headingText = `${tasks.filter(FILTER_MAP["Active"]).length} tasks remaining`;
+    const headingText = `${tasks.length} tasks, ${tasks.filter(FILTER_MAP["Active"]).length} remaining`;
     
     return (
         <>
             <div className="todoapp stack-large content">
-                <h1>TodoMatic v1</h1>
+                <h1>TodoMatic v2</h1>
                 <p>Server status: {serverStatusMsg}</p>
 
                 <Form onSubmit={addTask}/>

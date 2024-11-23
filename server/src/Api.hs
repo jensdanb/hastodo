@@ -41,17 +41,17 @@ runStmServerWithMocks port = do
 --- 
 
 type STMAPI = EPmeta
-        :<|> STMpost
-        :<|> STMget
-        :<|> STMdelete
-        :<|> STMput
+        :<|> PostTodo
+        :<|> GetTodos
+        :<|> DelTodo
+        :<|> PutTodo
 
 serveSTM :: ServerT STMAPI AppM
-serveSTM = metaEPHandler
-        :<|> stmPost
-        :<|> stmGet
-        :<|> stmDelete
-        :<|> stmPut
+serveSTM = handleStatusMessage
+        :<|> handlePostTodo
+        :<|> handleGetTodos
+        :<|> handleDelTodo
+        :<|> handlePutTodo
 
 stmAPI :: Proxy STMAPI
 stmAPI = Proxy
@@ -62,36 +62,36 @@ stmAPI = Proxy
 
 type EPmeta = "serverConnected" :> Get '[JSON] String
 
-metaEPHandler :: AppM String
-metaEPHandler = return "connected"
+handleStatusMessage :: AppM String
+handleStatusMessage = return "connected"
 
-type STMpost = "stmPost" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
+type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 
-stmPost :: Todo -> AppM Todo
-stmPost newTodo = do
+handlePostTodo :: Todo -> AppM Todo
+handlePostTodo newTodo = do
     State{todos = todoVar} <- ask
     liftIO $ insertTodo newTodo todoVar
     return newTodo
 
-type STMget = "stmGet" :> Get '[JSON] TodoList
+type GetTodos = "getTodos" :> Get '[JSON] TodoList
 
-stmGet :: AppM TodoList
-stmGet = do
+handleGetTodos :: AppM TodoList
+handleGetTodos = do
     State{todos = todoVar} <- ask
     liftIO $ reverse <$> readTVarIO todoVar
 
-type STMdelete = "stmDelete" :> ReqBody '[JSON] UUID :> Delete '[JSON] UUID
+type DelTodo = "delTodo" :> ReqBody '[JSON] UUID :> Delete '[JSON] UUID
 
-stmDelete :: UUID -> AppM UUID
-stmDelete uuid = do
+handleDelTodo :: UUID -> AppM UUID
+handleDelTodo uuid = do
     State{todos = todoVar} <- ask
     liftIO $ deleteTodo uuid todoVar
     return uuid
 
-type STMput = "stmPut" :> ReqBody '[JSON] PutData :> Put '[JSON] PutData
+type PutTodo = "putTodo" :> ReqBody '[JSON] PutData :> Put '[JSON] PutData
 
-stmPut :: PutData -> AppM PutData
-stmPut putData = do
+handlePutTodo :: PutData -> AppM PutData
+handlePutTodo putData = do
     State{todos = todoVar} <- ask
     liftIO $ putTodo putData todoVar
     return putData
