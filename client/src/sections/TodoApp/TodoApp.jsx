@@ -95,21 +95,37 @@ function TodoApp({initialTasks, initialFilter}) {
             );
     }
 
+    function serverPutTodo (id, toggle, newName) {
+        fetch("http://localhost:8080/stmPut", {
+                method: "PUT",
+                body: JSON.stringify([id, toggle, newName]),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .catch(error => {
+                console.error('Error: ', error)
+            }
+            );
+    }
+
     // Functions
     function addTask(name) {
         const newTask = { id: `todo-${nanoid()}`, name, completed: false };
         setTasks([...tasks, newTask]);
         postTodo(newTask)
     }
-    
+
+   
     function toggleTaskCompleted(id) {
         function toggleIfToggled (task) {
             if (task.id === id) {
                 return { ...task, completed: !task.completed };
-            } else return task;
+            } else return task; 
         }
         const revisedTasks = tasks.map(toggleIfToggled);
         setTasks(revisedTasks);
+        serverPutTodo(id, true, "");
     }
 
     function editTask(id, newName) {
@@ -120,6 +136,7 @@ function TodoApp({initialTasks, initialFilter}) {
         }
         const revisedTasks = tasks.map(editIfEdited);
         setTasks(revisedTasks);
+        serverPutTodo(id, false, newName);
     }
 
     function deleteTask(id) {
