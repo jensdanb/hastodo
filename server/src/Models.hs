@@ -7,12 +7,14 @@ import Data.Aeson (ToJSON, FromJSON)
 import GHC.Generics (Generic)
 import Data.Text (Text)
 import Control.Concurrent.STM (TVar, newTVarIO, atomically, modifyTVar)
+import Data.List (find)
 
 --- 
 --- Definitions
 ---
 type TodoKeyValue = (UUID, Todo)
 type TodoList = [Todo]
+type PutData = (UUID, Bool, Name)
 
 type UUID = Text
 type Name = Text
@@ -40,6 +42,12 @@ initialize = newTVarIO []
 --- Logic
 --- 
 
+matchingId :: UUID -> Todo -> Bool
+matchingId uuid todo = uuid == todo.id
+
+findById :: UUID -> TodoList -> Maybe Todo
+findById uuid = find (matchingId uuid)
+
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
 
@@ -49,6 +57,19 @@ insertTodo newTodo = modifyTodoList (newTodo:)
 deleteTodo :: UUID -> TodoVar -> IO ()
 deleteTodo uuid = modifyTodoList (filter ((/= uuid) . (.id)))
 
+putTodo :: PutData -> TodoVar -> IO ()
+putTodo (uuid, toggle, newName) = modifyTodoList (map putter)
+  where 
+    putter :: Todo -> Todo 
+    putter oldTodo = 
+      if oldTodo.id /= uuid then oldTodo 
+      else oldTodo { completed = if toggle then not oldTodo.completed else oldTodo.completed
+                   , name = if newName=="" then oldTodo.name else newName}
+
+replaceTodo :: Todo -> TodoVar -> IO ()
+replaceTodo newTodo = modifyTodoList (map replaceIfSameId)
+  where
+    replaceIfSameId oldTodo = if oldTodo.id == newTodo.id then newTodo else oldTodo
 
 {-
 changeTodoName :: TodoVar -> UUID -> Name -> IO ()

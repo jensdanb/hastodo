@@ -6,8 +6,8 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo(..), deleteTodo, UUID)
-import Plumbing (runServerSimpleCors, runServerWithCors)
+import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo(..), deleteTodo, putTodo, UUID, PutData)
+import Plumbing (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
@@ -44,12 +44,14 @@ type STMAPI = EPmeta
         :<|> STMpost
         :<|> STMget
         :<|> STMdelete
+        :<|> STMput
 
 serveSTM :: ServerT STMAPI AppM
 serveSTM = metaEPHandler
         :<|> stmPost
         :<|> stmGet
         :<|> stmDelete
+        :<|> stmPut
 
 stmAPI :: Proxy STMAPI
 stmAPI = Proxy
@@ -81,7 +83,15 @@ stmGet = do
 type STMdelete = "stmDelete" :> ReqBody '[JSON] UUID :> Delete '[JSON] UUID
 
 stmDelete :: UUID -> AppM UUID
-stmDelete uuid = do 
+stmDelete uuid = do
     State{todos = todoVar} <- ask
     liftIO $ deleteTodo uuid todoVar
     return uuid
+
+type STMput = "stmPut" :> ReqBody '[JSON] PutData :> Put '[JSON] PutData
+
+stmPut :: PutData -> AppM PutData
+stmPut putData = do
+    State{todos = todoVar} <- ask
+    liftIO $ putTodo putData todoVar
+    return putData
