@@ -10,7 +10,7 @@ maintainer:         you@example.com
 -- copyright:
 category:           Web
 build-type:         Simple
-extra-doc-files:    CHANGELOG.md
+extra-doc-files:    server/CHANGELOG.md
 -- extra-source-files:
 
 common warnings
@@ -27,14 +27,12 @@ library
                 , DuplicateRecordFields
                 , OverloadedRecordDot
     -- other-extensions:
-    build-depends:    base ^>=4.19.1.0 && <5
+    build-depends:    base ^>=4.20.0.0 && <5
                     , time
                     , text
                     , containers
                     , bytestring
                     , directory
-                    , blaze-markup
-                    , attoparsec
                     , servant
                     , servant-server
                     , warp
@@ -56,7 +54,7 @@ executable hastodo
     -- other-modules:
     -- other-extensions:
     build-depends:
-        base ^>=4.19.1.0 && <5,
+        base ^>=4.20.0.0 && <5,
         hastodo
 
     hs-source-dirs:   server/app
@@ -71,7 +69,7 @@ test-suite hastodo-test
     hs-source-dirs:   server/test
     main-is:          Main.hs
     build-depends:
-          base ^>=4.19.1.0 && <5
+          base ^>=4.20.0.0 && <5
         , hastodo
         , text
         , containers

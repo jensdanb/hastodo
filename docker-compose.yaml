@@ -17,9 +17,11 @@ services:
       - /usr/src/app/node_modules
 
   api: 
-    build: ./server
+    build: 
+      context: ./
+      dockerfile: ./server/Dockerfile
     ports: 
-      - 5060:8000
+      - 8080:8080
     
 
 # The commented out section below is an example of how to define a PostgreSQL
