@@ -1,0 +1,27 @@
+{
+    "name": "Hastodo", 
+    "short_name": "Todo", 
+    "start_url": "/", 
+    "display": "standalone", 
+    "background_color": "#cfe3ee", 
+    "icons": [
+        {
+            "src": "/hs.png", 
+            "sizes": "200x200", 
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshot.png", 
+            "sizes": "2502x1408", 
+            "type": "image/png",
+            "form_factor": "wide"
+        }, 
+        {
+            "src": "/screenshot_tall.png", 
+            "sizes": "837x1290", 
+            "type": "image/png"
+        }
+    ]
+}
