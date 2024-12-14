@@ -1,7 +1,8 @@
 import {useState, useEffect} from "react"; 
 import {nanoid} from "nanoid";
 
-import {Todo, Form, FilterButton} from "./Components";
+import {setServerData} from "../../networking"
+import {Todo, Form, FilterButton, ConnectionStatus} from "./Components";
 
 
 const FILTER_MAP = {
@@ -14,8 +15,6 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function TodoApp({initialTasks, initialFilter}) {
     // State
-
-    const [serverStatusMsg, setserverStatusMsg] = useState('');
 
     const [tasks, setTasks] = useState(initialTasks);
 
@@ -44,28 +43,7 @@ function TodoApp({initialTasks, initialFilter}) {
             />
     );
 
-    function fetchServerStatusMsg() {
-        fetch('http://localhost:8080/serverConnected')
-            .then(response => response.json())
-            .then(data => setserverStatusMsg(data))
-            .catch(error => {
-                console.error('Error: ', error)
-                setserverStatusMsg('not connected')
-            }
-            );
-    }
-    useEffect(() => {fetchServerStatusMsg()}, []);
-
-    function fetchServerTasks() {
-          fetch('http://localhost:8080/getTodos')
-            .then(response => response.json())
-            .then(data => setTasks( data ))
-            .catch(error => {
-              console.error('Error: ', error)
-            }
-            );
-    }
-    useEffect(() => {fetchServerTasks()}, []);
+    useEffect(() => {setServerData('/getTodos', setTasks)}, []);
 
     function postTodo (newTodo) {
         fetch("http://localhost:8080/postTodo", {
@@ -153,7 +131,7 @@ function TodoApp({initialTasks, initialFilter}) {
         <>
             <div className="todoapp stack-large content">
                 <h1>TodoMatic v2</h1>
-                <p>Server status: {serverStatusMsg}</p>
+                <ConnectionStatus/>
 
                 <Form onSubmit={addTask}/>
 
