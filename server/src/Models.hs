@@ -89,8 +89,12 @@ mock2 = Todo {id="todo-2sigisgoel", name="Sleep", completed=False}
 mock3 :: Todo
 mock3 = Todo {id="todo-3efkiffieu", name="Repeat", completed=False}
 
+mock4 :: Todo
+mock4 = Todo {id="todo-efwpekkgwm", name="Repeat", completed=False}
+
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do
   insertTodo mock1 todoVar
   insertTodo mock2 todoVar
   insertTodo mock3 todoVar
+  insertTodo mock4 todoVar
