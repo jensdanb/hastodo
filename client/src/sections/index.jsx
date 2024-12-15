@@ -1,4 +1,4 @@
-import { NavBar } from "./Navbar";
-import { TodoApp } from "./TodoApp";
+import NavBar from "./Navbar";
+import TodoApp from "./TodoApp";
 
-export { NavBar, TodoApp }
+export {NavBar, TodoApp}
