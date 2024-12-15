@@ -1,8 +1,9 @@
-import {useState, useEffect} from "react"; 
-import {nanoid} from "nanoid";
+import { useState, useEffect } from "react"; 
+import { nanoid } from "nanoid";
+import { useMutation, useQuery } from '@tanstack/react-query'
 
-import {setServerData} from "../../networking"
-import {Todo, Form, FilterButton, ConnectionStatus} from "./Components";
+import { setServerData } from "../../networking"
+import { Todo, Form, FilterButton, ConnectionStatus } from "./Components";
 
 
 const FILTER_MAP = {
@@ -15,6 +16,11 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function TodoApp({initialTasks, initialFilter}) {
     // State
+
+    /*
+    const { mutateAsync: addTodoMutation} = useMutation({
+        mutationFn: addTask,
+    })*/
 
     const [tasks, setTasks] = useState(initialTasks);
 
@@ -45,20 +51,6 @@ function TodoApp({initialTasks, initialFilter}) {
 
     useEffect(() => {setServerData('/getTodos', setTasks)}, []);
 
-    function postTodo (newTodo) {
-        fetch("http://localhost:8080/postTodo", {
-                method: "POST",
-                body: JSON.stringify(newTodo),
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                }
-            })
-            .catch(error => {
-                console.error('Error: ', error)
-            }
-            );
-    }
-
     function serverDeleteTodo (id) {
         fetch("http://localhost:8080/delTodo", {
                 method: "DELETE",
@@ -88,13 +80,27 @@ function TodoApp({initialTasks, initialFilter}) {
     }
 
     // Functions
+    
+    function postTodo (newTodo) {
+        fetch("http://localhost:8080/postTodo", {
+                method: "POST",
+                body: JSON.stringify(newTodo),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .catch(error => {
+                console.error('Error: ', error)
+            }
+            );
+    }
+
     function addTask(name) {
         const newTask = { id: `todo-${nanoid()}`, name, completed: false };
         setTasks([...tasks, newTask]);
         postTodo(newTask)
     }
 
-   
     function toggleTaskCompleted(id) {
         function toggleIfToggled (task) {
             if (task.id === id) {
