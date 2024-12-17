@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"; 
 import { nanoid } from "nanoid";
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { setServerData } from "../../networking"
+import { setServerData, getTodos, postTodo, putTodo, delTodo } from "../../networking"
 import { Todo, Form, FilterButton, ConnectionStatus } from "./Components";
 
 
@@ -14,29 +14,52 @@ const FILTER_MAP = {
 
 const FILTER_NAMES = Object.keys(FILTER_MAP);
 
-function TodoApp({initialTasks, initialFilter}) {
+function TodoApp({initialFilter}) {
     // State
 
-    /*
-    const { mutateAsync: addTodoMutation} = useMutation({
-        mutationFn: addTask,
-    })*/
+    const queryClient = useQueryClient()
 
-    const [tasks, setTasks] = useState(initialTasks);
+    const todos = useQuery({ queryKey: ['todos'], queryFn: getTodos })
+    
+    const addTodoMutation = useMutation({
+        mutationFn: (name) => {
+            const newTask = { id: `todo-${nanoid()}`, name, completed: false };
+            return postTodo(newTask)
+        }, 
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['todos'] })
+          }
+      })
+    
+    const delTodoMutation = useMutation({
+        mutationFn: (id) => {
+            return delTodo(id)
+        },
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['todos'] })
+        },
+      })
+    
+    const putTodoMutation = useMutation({
+        mutationFn: putTodo,
+        onSettled: () => {
+          queryClient.invalidateQueries({ queryKey: ['todos'] })
+        },
+      })
 
     const [taskFilter, setTaskFilter] = useState(initialFilter);
 
-    const taskList = tasks
-        .filter(FILTER_MAP[taskFilter])
+    const taskList = todos.data
+        ?.filter(FILTER_MAP[taskFilter])
         ?.map((task) => (
             <Todo
                 id={task.id}
                 name={task.name}
                 completed={task.completed}
                 key={task.id}
-                toggleTaskCompleted={toggleTaskCompleted}
-                editTask={editTask}
-                deleteTask={deleteTask}
+                toggleTaskCompleted={putTodoMutation.mutate}
+                editTask={putTodoMutation.mutate}
+                deleteTask={delTodoMutation.mutate}
             />)
     );
     
@@ -49,89 +72,8 @@ function TodoApp({initialTasks, initialFilter}) {
             />
     );
 
-    useEffect(() => {setServerData('/getTodos', setTasks)}, []);
-
-    function serverDeleteTodo (id) {
-        fetch("http://localhost:8080/delTodo", {
-                method: "DELETE",
-                body: JSON.stringify(id),
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                }
-            })
-            .catch(error => {
-                console.error('Error: ', error)
-            }
-            );
-    }
-
-    function serverPutTodo (id, toggle, newName) {
-        fetch("http://localhost:8080/putTodo", {
-                method: "PUT",
-                body: JSON.stringify([id, toggle, newName]),
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                }
-            })
-            .catch(error => {
-                console.error('Error: ', error)
-            }
-            );
-    }
-
-    // Functions
-    
-    function postTodo (newTodo) {
-        fetch("http://localhost:8080/postTodo", {
-                method: "POST",
-                body: JSON.stringify(newTodo),
-                headers: {
-                    "Content-type": "application/json; charset=UTF-8"
-                }
-            })
-            .catch(error => {
-                console.error('Error: ', error)
-            }
-            );
-    }
-
-    function addTask(name) {
-        const newTask = { id: `todo-${nanoid()}`, name, completed: false };
-        setTasks([...tasks, newTask]);
-        postTodo(newTask)
-    }
-
-    function toggleTaskCompleted(id) {
-        function toggleIfToggled (task) {
-            if (task.id === id) {
-                return { ...task, completed: !task.completed };
-            } else return task; 
-        }
-        const revisedTasks = tasks.map(toggleIfToggled);
-        setTasks(revisedTasks);
-        serverPutTodo(id, true, "");
-    }
-
-    function editTask(id, newName) {
-        function editIfEdited (task) {
-            if (task.id === id) {
-                return { ...task, name: newName };
-            } else return task;
-        }
-        const revisedTasks = tasks.map(editIfEdited);
-        setTasks(revisedTasks);
-        serverPutTodo(id, false, newName);
-    }
-
-    function deleteTask(id) {
-        const remainingTasks = tasks.filter((task) => task.id !== id);
-        setTasks(remainingTasks);
-        serverDeleteTodo(id)
-    }
-
-    
     // Visuals
-    const headingText = `${tasks.length} tasks, ${tasks.filter(FILTER_MAP["Active"]).length} remaining`;
+    const headingText = `${todos.data?.length} tasks, ${todos.data?.filter(FILTER_MAP["Active"]).length} remaining`;
     
     return (
         <>
@@ -139,7 +81,7 @@ function TodoApp({initialTasks, initialFilter}) {
             <h1>TodoMatic v2</h1>
             <ConnectionStatus/>
 
-            <Form onSubmit={addTask}/>
+            <Form onSubmit={addTodoMutation.mutate}/>
 
             <div className="filters btn-group stack-exception">
                 {filterButtons}

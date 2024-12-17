@@ -4,7 +4,7 @@ import { NavBar } from "./sections";
 import { TodoApp } from "./sections";
 
 const queryClient = new QueryClient()
-const initialTasks = [];
+//const initialTasks = [];
 
 function App() {
   return (
@@ -12,7 +12,6 @@ function App() {
       <>
         <NavBar />
         <TodoApp
-          initialTasks={initialTasks}
           initialFilter={"All"}/>
       </>
     </QueryClientProvider>

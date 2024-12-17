@@ -20,7 +20,7 @@ function EditingTodo({props, setIsEditing}) {
     function submitEdit(event) {
         event.preventDefault();
         if (newName != "") {
-            props.editTask(props.id, newName);
+            props.editTask({id: props.id, toggle: false, newName: newName});
             setIsEditing(false);
         };
     }
@@ -64,7 +64,7 @@ function ViewTodo({props, setIsEditing}) {
                     id={props.id} 
                     type="checkbox" 
                     defaultChecked={props.completed} 
-                    onChange={() => props.toggleTaskCompleted(props.id)}
+                    onChange={() => props.toggleTaskCompleted({id: props.id, toggle: true, newName: props.name})}
                 />
                 
                 <label className="todo-label" htmlFor={props.id}>
