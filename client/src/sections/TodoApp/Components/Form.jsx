@@ -23,7 +23,7 @@ function Form(props) {
 
         <h2 className="label-wrapper">
           <label htmlFor="new-todo-input" className="label__lg">
-            What has to be done?
+            What more to do?
           </label>
         </h2>
 

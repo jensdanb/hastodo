@@ -26,7 +26,7 @@ function TodoApp({initialFilter}) {
             const newTask = { id: `todo-${nanoid()}`, name, completed: false };
             return postTodo(newTask)
         }, 
-        onSuccess: () => {
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['todos'] })
           }
       })
@@ -35,7 +35,7 @@ function TodoApp({initialFilter}) {
         mutationFn: (id) => {
             return delTodo(id)
         },
-        onSuccess: () => {
+        onSettled: () => {
           queryClient.invalidateQueries({ queryKey: ['todos'] })
         },
       })
