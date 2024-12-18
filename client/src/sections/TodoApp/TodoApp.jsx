@@ -20,33 +20,30 @@ function TodoApp({initialFilter}) {
     const queryClient = useQueryClient()
 
     const todos = useQuery({ queryKey: ['todos'], queryFn: getTodos })
+
+    const settleTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
     
     const addTodoMutation = useMutation({
         mutationFn: (name) => {
             const newTask = { id: `todo-${nanoid()}`, name, completed: false };
             return postTodo(newTask)
         }, 
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['todos'] })
-          }
+        onSettled: settleTodos,
       })
-    
+
     const delTodoMutation = useMutation({
-        mutationFn: (id) => {
-            return delTodo(id)
-        },
-        onSettled: () => {
-          queryClient.invalidateQueries({ queryKey: ['todos'] })
-        },
+        mutationFn: (id) => {return delTodo(id)},
+        onSettled: settleTodos,
       })
     
     const putTodoMutation = useMutation({
         mutationFn: putTodo,
-        onSettled: () => {
-          queryClient.invalidateQueries({ queryKey: ['todos'] })
-        },
+        onSettled: settleTodos,
+        mutationKey: ['putTodo']
       })
-
+    const { isPending, submittedAt, variables, mutate, isError } = putTodoMutation
+        
+        
     const [taskFilter, setTaskFilter] = useState(initialFilter);
 
     const taskList = todos.data
