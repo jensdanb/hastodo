@@ -6,11 +6,12 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo(..), deleteTodo, putTodo, UUID, PutData)
+import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo(..), deleteTodo, putTodo, UUID, PutData, insertTodos, todoExists, overlap')
 import Plumbing (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
 import Control.Monad.Reader (liftIO)
+import Data.Text.Lazy.Encoding (encodeUtf8)
 
 ---
 --- Server 
@@ -42,6 +43,7 @@ runStmServerWithMocks port = do
 
 type STMAPI = EPmeta
         :<|> PostTodo
+        :<|> PostTodos
         :<|> GetTodos
         :<|> DelTodo
         :<|> PutTodo
@@ -49,6 +51,7 @@ type STMAPI = EPmeta
 serveSTM :: ServerT STMAPI AppM
 serveSTM = handleStatusMessage
         :<|> handlePostTodo
+        :<|> handlePostTodos
         :<|> handleGetTodos
         :<|> handleDelTodo
         :<|> handlePutTodo
@@ -60,18 +63,42 @@ stmAPI = Proxy
 --- API endpoints
 --- 
 
-type EPmeta = "serverConnected" :> Get '[JSON] String
+type EPmeta = "serverConnected" :> Get '[JSON] Bool
 
-handleStatusMessage :: AppM String
-handleStatusMessage = return "connected"
+handleStatusMessage :: AppM Bool
+handleStatusMessage = return True
 
 type PostTodo = "postTodo" :> ReqBody '[JSON] Todo :> PostCreated '[JSON] Todo
 
 handlePostTodo :: Todo -> AppM Todo
 handlePostTodo newTodo = do
     State{todos = todoVar} <- ask
-    liftIO $ insertTodo newTodo todoVar
-    return newTodo
+    postAllowed <- liftIO $ not <$> todoExists todoVar newTodo
+    if postAllowed
+        then do 
+            liftIO $ insertTodo newTodo todoVar
+            return newTodo
+        else 
+            throwError $ error400idIsUsed newTodo
+
+error400idIsUsed :: Todo -> ServerError
+error400idIsUsed newTodo = err400 { errBody = "Todo with ID " <> (encodeUtf8 newTodo.id) <> "already exists" }
+
+error400idCollision :: ServerError
+error400idCollision = err400 {errBody = "One of the IDs collided!"}
+
+type PostTodos = "postTodos" :> ReqBody '[JSON] [Todo] :> PostCreated '[JSON] [Todo]
+
+handlePostTodos :: [Todo] -> AppM [Todo]
+handlePostTodos newTodos = do
+    State{todos = todoVar} <- ask
+    postAllowed <- liftIO $ not <$> overlap' todoVar newTodos
+    if postAllowed
+        then do 
+            liftIO $ insertTodos newTodos todoVar
+            return newTodos
+        else 
+            throwError error400idCollision
 
 type GetTodos = "getTodos" :> Get '[JSON] TodoList
 

@@ -1,10 +1,11 @@
 import {useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider,} from '@tanstack/react-query'
 
-import { NavBar } from "./sections";
-import { TodoApp } from "./sections";
+import { NavBar } from "./components";
+import { TodoApp } from "./components";
+import { startDB } from './services/db-service';
 
 const queryClient = new QueryClient()
-//const initialTasks = [];
+startDB();
 
 function App() {
   return (
@@ -18,4 +19,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

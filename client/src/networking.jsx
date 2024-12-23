@@ -20,7 +20,7 @@ async function getTodos() {
 
 async function modifyingQuery (address, clientTodo) {
   var method = ""
-  if (["/postTodo"].includes(address)) {
+  if (["/postTodo", "/postTodos"].includes(address)) {
     method = "POST"
   }
   else if (["/putTodo"].includes(address)) {
@@ -49,6 +49,10 @@ async function postTodo(newTodo) {
   await modifyingQuery('/postTodo', newTodo);
 }
 
+async function postTodos(newTodos) { // Array
+  await modifyingQuery('/postTodos', newTodos);
+}
+
 async function putTodo({id, toggle, newName}) {
   await modifyingQuery('/putTodo', [id, toggle, newName]);
 }
@@ -67,4 +71,4 @@ function setServerData(address, setter) {
         );
 }
 
-export {getJSON, hsUrl, setServerData, getTodos, postTodo, putTodo, delTodo}
+export {getJSON, hsUrl, getTodos, postTodo, postTodos, putTodo, delTodo}

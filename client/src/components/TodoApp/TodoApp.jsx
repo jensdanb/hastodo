@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { setServerData, getTodos, postTodo, putTodo, delTodo } from "../../networking"
-import { Todo, Form, FilterButton, ConnectionStatus } from "./Components";
+import { getTodos, postTodo, postTodos, putTodo, delTodo } from "../../networking"
+import { Todo, Form, FilterButton, PwaController } from "./Components";
+import { addFailedTodo, getUnsyncedTodos } from "../../services/db-service";
 
 
 const FILTER_MAP = {
@@ -21,27 +22,44 @@ function TodoApp({initialFilter}) {
 
     const todos = useQuery({ queryKey: ['todos'], queryFn: getTodos })
 
-    const settleTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
+    const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
+    
     
     const addTodoMutation = useMutation({
         mutationFn: (name) => {
-            const newTask = { id: `todo-${nanoid()}`, name, completed: false };
+            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, synced: true };
             return postTodo(newTask)
         }, 
-        onSettled: settleTodos,
+        onError: async (error, name) => {
+            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, synced: false }; // Note synced==false on error 
+            await addFailedTodo('posts', newTask);
+            return invalidateTodos();
+        },
+        onSuccess: async () => {
+
+            const unSyncedTodos = await getUnsyncedTodos()
+            if (Array.isArray(unSyncedTodos) && unSyncedTodos.length != 0) {
+                syncResponse = await postTodos(unSyncedTodos);
+                console.dir('Uploaded ' + unSyncedTodos.map(JSON.stringify));
+                console.dir('Syncresponse: ' + syncResponse);
+            } 
+            else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
+            invalidateTodos();
+        },
       })
+    // const { postIsPending, postSubmittedAt, postVariables, postMutate, postIsError } = postTodoMutation
 
     const delTodoMutation = useMutation({
         mutationFn: (id) => {return delTodo(id)},
-        onSettled: settleTodos,
+        onSettled: invalidateTodos,
       })
     
     const putTodoMutation = useMutation({
         mutationFn: putTodo,
-        onSettled: settleTodos,
+        onSettled: invalidateTodos,
         mutationKey: ['putTodo']
       })
-    const { isPending, submittedAt, variables, mutate, isError } = putTodoMutation
+    // const { isPending, submittedAt, variables, mutate, isError } = putTodoMutation
         
         
     const [taskFilter, setTaskFilter] = useState(initialFilter);
@@ -54,11 +72,12 @@ function TodoApp({initialFilter}) {
                 name={task.name}
                 completed={task.completed}
                 key={task.id}
+                synced={task.synced}
                 toggleTaskCompleted={putTodoMutation.mutate}
                 editTask={putTodoMutation.mutate}
                 deleteTask={delTodoMutation.mutate}
             />)
-    );
+        );
     
     const filterButtons = FILTER_NAMES.map((name) => 
         <FilterButton 
@@ -76,7 +95,7 @@ function TodoApp({initialFilter}) {
         <>
         <div className="todoapp stack-large content">
             <h1>TodoMatic v2</h1>
-            <ConnectionStatus/>
+            <PwaController/>
 
             <Form onSubmit={addTodoMutation.mutate}/>
 
