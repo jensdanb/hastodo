@@ -8,9 +8,7 @@ import GHC.Generics (Generic)
 import qualified Data.Text.Lazy as L
 import Data.List (find)
 import Control.Concurrent.STM (TVar, newTVarIO, atomically, modifyTVar, readTVarIO)
-import Control.Monad.Reader (liftIO)
 import Data.Maybe (isJust)
-import Control.Monad (forM_)
 
 --- 
 --- Definitions
@@ -52,10 +50,11 @@ modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
 
 insertTodo :: Todo -> TodoVar -> IO ()
-insertTodo newTodo = modifyTodoList (newTodo:)
+insertTodo newTodo = modifyTodoList (newTodo{synced=True}:)
 
 insertTodos :: [Todo] -> TodoVar -> IO ()
-insertTodos newTodos = modifyTodoList $ (reverse newTodos <>)
+insertTodos newTodos = modifyTodoList $ (reverse newTodos' <>)
+  where newTodos' = map (\todo -> todo{synced=True}) newTodos
 
 deleteTodo :: UUID -> TodoVar -> IO ()
 deleteTodo uuid = modifyTodoList (filter ((/= uuid) . (.id)))
@@ -67,7 +66,8 @@ putTodo (uuid, toggle, newName) = modifyTodoList (map putter)
     putter oldTodo = 
       if oldTodo.id /= uuid then oldTodo 
       else oldTodo { completed = if toggle then not oldTodo.completed else oldTodo.completed
-                   , name = if newName=="" then oldTodo.name else newName}
+                   , name = if newName=="" then oldTodo.name else newName
+                   , synced = True}
 
 replaceTodo :: Todo -> TodoVar -> IO ()
 replaceTodo newTodo = modifyTodoList (map replaceIfSameId)
@@ -95,11 +95,6 @@ todoExists tVar todo = do
     let foundMatch = findById todo.id tList
     return $ isJust foundMatch
 
-matchList :: TodoVar -> [Todo] -> IO ([Bool])
-matchList tVar = mapM (todoExists tVar)
-
-anyMatches :: [Bool] -> IO Bool
-anyMatches bools = return $ any (==True) bools
 
 rename :: Todo -> Name -> Todo
 rename todo name = todo {name=name}
@@ -108,20 +103,20 @@ rename todo name = todo {name=name}
 --- Defaults and templates
 --- 
 
-defaultTodo :: Todo
-defaultTodo = Todo {completed=False, synced=True}
+baseTodo :: Todo
+baseTodo = Todo {completed=False, synced=True}
 
 mock1 :: Todo
-mock1 = defaultTodo {id="todo-1sgsgerjkg", name="Eat", completed=True}
+mock1 = baseTodo {id="todo-1sgsgerjkg", name="Eat", completed=True}
 
 mock2 :: Todo
-mock2 = defaultTodo {id="todo-2sigisgoel", name="Sleep"}
+mock2 = baseTodo {id="todo-2sigisgoel", name="Sleep"}
 
 mock3 :: Todo
-mock3 = defaultTodo {id="todo-3efkiffieu", name="Repeat"}
+mock3 = baseTodo {id="todo-3efkiffieu", name="Repeat"}
 
 mock4 :: Todo
-mock4 = defaultTodo {id="todo-efwpekkgwm", name="Repeat"}
+mock4 = baseTodo {id="todo-efwpekkgwm", name="Repeat"}
 
 insertMocks :: TodoVar -> IO ()
 insertMocks todoVar = do

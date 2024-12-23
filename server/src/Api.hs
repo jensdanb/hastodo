@@ -6,7 +6,8 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), initialize, insertTodo, insertMocks, TodoList, Todo(..), deleteTodo, putTodo, UUID, PutData, insertTodos, todoExists, overlap')
+import Models (State(State, todos), TodoList, Todo(..), UUID, PutData, 
+    initialize, insertTodo, insertMocks, deleteTodo, putTodo, insertTodos, todoExists, overlap')
 import Plumbing (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
 import Control.Monad.Trans.Reader  (ReaderT, ask, runReaderT)
@@ -81,12 +82,6 @@ handlePostTodo newTodo = do
         else 
             throwError $ error400idIsUsed newTodo
 
-error400idIsUsed :: Todo -> ServerError
-error400idIsUsed newTodo = err400 { errBody = "Todo with ID " <> (encodeUtf8 newTodo.id) <> "already exists" }
-
-error400idCollision :: ServerError
-error400idCollision = err400 {errBody = "One of the IDs collided!"}
-
 type PostTodos = "postTodos" :> ReqBody '[JSON] [Todo] :> PostCreated '[JSON] [Todo]
 
 handlePostTodos :: [Todo] -> AppM [Todo]
@@ -122,3 +117,9 @@ handlePutTodo putData = do
     State{todos = todoVar} <- ask
     liftIO $ putTodo putData todoVar
     return putData
+
+error400idIsUsed :: Todo -> ServerError
+error400idIsUsed newTodo = err400 { errBody = "Todo with ID " <> (encodeUtf8 newTodo.id) <> "already exists" }
+
+error400idCollision :: ServerError
+error400idCollision = err400 {errBody = "One of the IDs collided!"}
