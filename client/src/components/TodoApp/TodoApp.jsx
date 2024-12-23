@@ -24,7 +24,18 @@ function TodoApp({initialFilter}) {
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
     
-    
+    const flushCache = async () => {
+        const unSyncedTodos = await getUnsyncedTodos()
+        if (Array.isArray(unSyncedTodos) && unSyncedTodos.length != 0) {
+            syncResponse = await postTodos(unSyncedTodos);
+            console.dir('Uploaded ' + unSyncedTodos.map(JSON.stringify));
+            console.dir('Syncresponse: ' + syncResponse);
+            return syncResponse;
+        } 
+        else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
+        return false;
+    }
+
     const addTodoMutation = useMutation({
         mutationFn: (name) => {
             const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, synced: true };

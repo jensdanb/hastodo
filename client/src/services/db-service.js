@@ -51,6 +51,11 @@ async function getUnsyncedTodos() {
     return await db.getAll('posts')
 }
 
+async function networkTransaction(networkAction, dbAction) {
+    const db = await openDB(todoDBName, todoDBVersion);
+    const tx = db.transaction('posts', 'readwrite');
+}
+
 // --- Junk --- 
 
 
