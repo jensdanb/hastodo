@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { getTodos, postTodo, postTodos, putTodo, delTodo } from "../../networking"
+import { getTodos, postTodo, postTodos, putTodo, delTodo } from "../../services/networking"
 import { Todo, Form, FilterButton, PwaController } from "./Components";
-import { addFailedTodo, getUnsyncedTodos } from "../../services/db-service";
+import { cacheFailedTodo, getUnsyncedTodos } from "../../services/db-service";
+import { flushDbToServer } from "../../services/multi-service";
 
 
 const FILTER_MAP = {
@@ -23,18 +24,6 @@ function TodoApp({initialFilter}) {
     const todos = useQuery({ queryKey: ['todos'], queryFn: getTodos })
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
-    
-    const flushCache = async () => {
-        const unSyncedTodos = await getUnsyncedTodos()
-        if (Array.isArray(unSyncedTodos) && unSyncedTodos.length != 0) {
-            syncResponse = await postTodos(unSyncedTodos);
-            console.dir('Uploaded ' + unSyncedTodos.map(JSON.stringify));
-            console.dir('Syncresponse: ' + syncResponse);
-            return syncResponse;
-        } 
-        else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
-        return false;
-    }
 
     const addTodoMutation = useMutation({
         mutationFn: (name) => {
@@ -43,18 +32,12 @@ function TodoApp({initialFilter}) {
         }, 
         onError: async (error, name) => {
             const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, synced: false }; // Note synced==false on error 
-            await addFailedTodo('posts', newTask);
+            await cacheFailedTodo('posts', newTask);
             return invalidateTodos();
         },
         onSuccess: async () => {
 
-            const unSyncedTodos = await getUnsyncedTodos()
-            if (Array.isArray(unSyncedTodos) && unSyncedTodos.length != 0) {
-                syncResponse = await postTodos(unSyncedTodos);
-                console.dir('Uploaded ' + unSyncedTodos.map(JSON.stringify));
-                console.dir('Syncresponse: ' + syncResponse);
-            } 
-            else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
+            await flushDbToServer();
             invalidateTodos();
         },
       })

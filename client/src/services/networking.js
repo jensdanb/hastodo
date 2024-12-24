@@ -42,15 +42,18 @@ async function modifyingQuery (address, clientTodo) {
           console.error('Error: ', error)
       }
       );
-  return response.json()
-}
+      if (response.ok){
+        return response.json();
+      } 
+      else {console.log(response);}
+  }
 
 async function postTodo(newTodo) {
   await modifyingQuery('/postTodo', newTodo);
 }
 
 async function postTodos(newTodos) { // Array
-  await modifyingQuery('/postTodos', newTodos);
+  return await modifyingQuery('/postTodos', newTodos);
 }
 
 async function putTodo({id, toggle, newName}) {

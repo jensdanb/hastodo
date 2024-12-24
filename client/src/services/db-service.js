@@ -14,6 +14,10 @@ function startDB () {
     }
   }
 
+async function openTodoDB () {
+    return await openDB(todoDBName, todoDBVersion);
+}
+
 async function createTodoDB () {
     const dbPromise = await openDB(todoDBName, todoDBVersion, {
         upgrade (db, oldVersion) {
@@ -40,10 +44,9 @@ async function createTodoDB () {
 
 // --- Use ---
 
-async function addFailedTodo(failedMethod, todo) {
+async function cacheFailedTodo(failedMethod, todo) {
     const db = await openDB(todoDBName, todoDBVersion);
     await db.add(failedMethod, todo);
-    console.log(failedMethod + ' Request failed, caching ' + JSON.stringify(todo))
 }
 
 async function getUnsyncedTodos() {
@@ -91,4 +94,4 @@ async function getFood(name) {
     return food;
 }
 
-export {startDB, addFailedTodo, getUnsyncedTodos}
+export {startDB, openTodoDB, cacheFailedTodo, getUnsyncedTodos}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import 'idb';
 
-import { getJSON, hsUrl } from '../../../networking';
+import { getJSON, hsUrl } from '../../../services/networking';
 
 
 
