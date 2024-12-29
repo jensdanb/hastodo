@@ -4,8 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getTodos, postTodo, postTodos, putTodo, delTodo } from "../../services/networking"
 import { Todo, Form, FilterButton, PwaController } from "./Components";
-import { cacheFailedTodo, getUnsyncedTodos } from "../../services/db-service";
-import { flushDbToServer } from "../../services/multi-service";
 
 
 const FILTER_MAP = {
@@ -27,19 +25,10 @@ function TodoApp({initialFilter}) {
 
     const addTodoMutation = useMutation({
         mutationFn: (name) => {
-            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, synced: true };
+            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, reachedServer: true };
             return postTodo(newTask)
-        }, 
-        onError: async (error, name) => {
-            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, synced: false }; // Note synced==false on error 
-            await cacheFailedTodo('posts', newTask);
-            return invalidateTodos();
         },
-        onSuccess: async () => {
-
-            await flushDbToServer();
-            invalidateTodos();
-        },
+        onSettled: invalidateTodos,
       })
     // const { postIsPending, postSubmittedAt, postVariables, postMutate, postIsError } = postTodoMutation
 
@@ -66,7 +55,7 @@ function TodoApp({initialFilter}) {
                 name={task.name}
                 completed={task.completed}
                 key={task.id}
-                synced={task.synced}
+                reachedServer={task.reachedServer}
                 toggleTaskCompleted={putTodoMutation.mutate}
                 editTask={putTodoMutation.mutate}
                 deleteTask={delTodoMutation.mutate}
