@@ -109,16 +109,10 @@ rename todo name = todo {name=name}
 baseTodo :: Todo
 baseTodo = Todo {completed=False, reachedServer=True}
 
-mock1 :: Todo
+mock1, mock2, mock3, mock4 :: Todo
 mock1 = baseTodo {id="todo-1sgsgerjkg", name="Eat", completed=True}
-
-mock2 :: Todo
 mock2 = baseTodo {id="todo-2sigisgoel", name="Sleep"}
-
-mock3 :: Todo
 mock3 = baseTodo {id="todo-3efkiffieu", name="Repeat"}
-
-mock4 :: Todo
 mock4 = baseTodo {id="todo-efwpekkgwm", name="Repeat"}
 
 insertMocks :: TodoVar -> IO ()
