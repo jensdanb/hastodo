@@ -63,7 +63,7 @@ function ViewTodo({props, setIsEditing}) {
                 <input 
                     id={props.id} 
                     type="checkbox" 
-                    defaultChecked={props.completed} 
+                    checked={props.completed} 
                     onChange={() => props.toggleTaskCompleted({id: props.id, toggle: true, newName: props.name})}
                 />
                 

@@ -54,7 +54,7 @@ function TodoApp({initialFilter}) {
                 id={task.id}
                 name={task.name}
                 completed={task.completed}
-                key={task.id}
+                key={task.id + task.name + task.completed}
                 reachedServer={task.reachedServer}
                 toggleTaskCompleted={putTodoMutation.mutate}
                 editTask={putTodoMutation.mutate}
