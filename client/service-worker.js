@@ -41,52 +41,38 @@ const putInCache = async (cacheName, request, response) => {
 
 async function requestNetwork(cacheName, request) {
     const responseFromNetwork = await fetch(request);
-    // response may be used only once
-    // we need to save clone to put one copy in cache
-    // and serve second one
+    // clone because response may be used only once
     putInCache(cacheName, request, responseFromNetwork.clone());
-    console.log("Response from network is:", responseFromNetwork);
+    console.log("Response from network:", responseFromNetwork);
     return responseFromNetwork;
 }
 
 async function requestCache(cacheName, request) {
-    const cache = await caches.open(cacheName);
-    const responseFromCache = await cache.match(request);
-    console.log("Found response in cache:", responseFromCache);
+    const responseFromCache = caches.match(request);
     return responseFromCache;
-
 }
 
-async function requestsFailed (error, fallbackUrl) {
-    const fallbackResponse = await caches.match(fallbackUrl);
-    if (fallbackResponse) {
-        return fallbackResponse;
-    }
-    // when even the fallback response is not available,
-    // there is nothing we can do, but we must always
-    // return a Response object
-    console.error("Fetching failed, both cache and network");
+async function requestsFailed (error) {
+    console.error(error);
     return new Response("Network error happened", {
         status: 408,
         headers: { "Content-Type": "text/plain" },
     });
 }
 
-const cacheFirst = async ({cacheName,  request, fallbackUrl }) => {
-    // copy of requestCache() 
+const cacheFirst = async ({cacheName,  request }) => {
     const responseFromCache = await caches.match(request);
-    if (responseFromCache) {
+    if (responseFromCache && responseFromCache.ok) {
         return responseFromCache;
     }
     try {
         return requestNetwork(cacheName, request);
     } catch (error) {
-        return requestsFailed (error, fallbackUrl);
+        return requestsFailed (error);
     }
 };
 
-const networkFirst = async ({ cacheName, request, fallbackUrl }) => {
-    // copy of requestNetwork()
+const networkFirst = async ({ cacheName, request }) => {
     const responseFromNetwork = await fetch(request);
     if (responseFromNetwork.ok) {
         putInCache(cacheName, request, responseFromNetwork.clone());
@@ -95,12 +81,11 @@ const networkFirst = async ({ cacheName, request, fallbackUrl }) => {
     try {
         return requestCache(cacheName, request);
     } catch (error) {
-        return requestsFailed (error, fallbackUrl);
+        return requestsFailed (error);
     }
 };
   
 self.addEventListener("fetch", (event) => {
-    //console.log("Caught event" + event.request.url)
     if (event.request.method !== "GET") {
         console.log('Not GET request. No Service-worker effect');
         return;
@@ -109,8 +94,7 @@ self.addEventListener("fetch", (event) => {
         event.respondWith(
             cacheFirst({
                 cacheName: STATIC_CACHE,
-                request: event.request,
-                fallbackUrl: "/src/color.css",
+                request: event.request
             }),
         )
     }
@@ -118,8 +102,7 @@ self.addEventListener("fetch", (event) => {
         event.respondWith(
             networkFirst({
                 cacheName: SERVER_STATE_CACHE,
-                request: event.request,
-                fallbackUrl: "/src/color.css",
+                request: event.request
             }),
         );
     }
