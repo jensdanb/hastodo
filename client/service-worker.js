@@ -31,7 +31,8 @@ workbox.routing.registerRoute(
 const SW_VESRION = "v1.1_";
 const STATIC_CACHE = SW_VESRION + "static"
 const SERVER_STATE_CACHE = SW_VESRION + "server_state";
-const EDIT_QUEUE_CHACE = SW_VESRION + "queue";
+
+// POST/PUT queue must be in indexedDB. Import it.
 
 
 const putInCache = async (cacheName, request, response) => {
