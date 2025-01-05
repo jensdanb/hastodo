@@ -1,12 +1,27 @@
 import {useState} from "react"; 
 
 function Todo(props) {
-
+    
     const [isEditing, setIsEditing] = useState(false);
-
+    
+    const putTodoMutation = useMutation({
+            mutationFn: putTodo,
+            onSettled: props.invalidateTodoList,
+            mutationKey: ['putTodo']
+        })
+        
     if (isEditing) {
-        return <EditingTodo props={props} setIsEditing={setIsEditing}/>;
-    } else return <ViewTodo props={props} setIsEditing={setIsEditing}/>;
+        return <EditingTodo 
+                    props={props} 
+                    setIsEditing={setIsEditing}
+                    submitEdit={putTodoMutation.mutate}
+                />;
+    } else 
+        return <ViewTodo 
+                    props={props} 
+                    setIsEditing={setIsEditing}
+                    toggleTaskCompleted={putTodoMutation.mutate}
+                />;
   }
 
 function EditingTodo({props, setIsEditing}) {
@@ -20,7 +35,7 @@ function EditingTodo({props, setIsEditing}) {
     function submitEdit(event) {
         event.preventDefault();
         if (newName != "") {
-            props.editTask({id: props.id, toggle: false, newName: newName});
+            props.submitEdit({id: props.id, toggle: false, newName: newName});
             setIsEditing(false);
         };
     }
@@ -57,13 +72,14 @@ function EditingTodo({props, setIsEditing}) {
 }
 
 function ViewTodo({props, setIsEditing}) {
+    const completed = props.completed.clone()
     return (
         <div className="todo stack-small">
             <div className="c-cb">
                 <input 
                     id={props.id} 
                     type="checkbox" 
-                    checked={props.completed} 
+                    checked={completed} 
                     onChange={() => props.toggleTaskCompleted({id: props.id, toggle: true, newName: props.name})}
                 />
                 

@@ -37,11 +37,7 @@ function TodoApp({initialFilter}) {
         onSettled: invalidateTodos,
       })
     
-    const putTodoMutation = useMutation({
-        mutationFn: putTodo,
-        onSettled: invalidateTodos,
-        mutationKey: ['putTodo']
-      })
+
     // const { isPending, submittedAt, variables, mutate, isError } = putTodoMutation
         
         
@@ -56,8 +52,7 @@ function TodoApp({initialFilter}) {
                 completed={task.completed}
                 key={task.id + task.name + task.completed}
                 reachedServer={task.reachedServer}
-                toggleTaskCompleted={putTodoMutation.mutate}
-                editTask={putTodoMutation.mutate}
+                invalidateTodoList={invalidateTodos}
                 deleteTask={delTodoMutation.mutate}
             />)
         );
