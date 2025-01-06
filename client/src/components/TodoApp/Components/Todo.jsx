@@ -1,4 +1,6 @@
 import {useState} from "react"; 
+import { useMutation } from "@tanstack/react-query";
+import { putTodo } from "../../../services/networking";
 
 function Todo(props) {
     
@@ -9,22 +11,23 @@ function Todo(props) {
             onSettled: props.invalidateTodoList,
             mutationKey: ['putTodo']
         })
+    const { isPending, submittedAt, variables, mutate, isError } = putTodoMutation;
         
     if (isEditing) {
         return <EditingTodo 
                     props={props} 
-                    setIsEditing={setIsEditing}
                     submitEdit={putTodoMutation.mutate}
+                    setIsEditing={setIsEditing}
                 />;
     } else 
         return <ViewTodo 
                     props={props} 
+                    toggleTaskCompleted={mutate}
                     setIsEditing={setIsEditing}
-                    toggleTaskCompleted={putTodoMutation.mutate}
                 />;
   }
 
-function EditingTodo({props, setIsEditing}) {
+function EditingTodo({props, submitEdit, setIsEditing}) {
 
     const [newName, setNewName] = useState(props.name);
 
@@ -32,16 +35,16 @@ function EditingTodo({props, setIsEditing}) {
         setNewName(event.target.value);
     }
 
-    function submitEdit(event) {
+    function submitEditValid(event) {
         event.preventDefault();
         if (newName != "") {
-            props.submitEdit({id: props.id, toggle: false, newName: newName});
+            submitEdit({id: props.id, toggle: false, newName: newName});
             setIsEditing(false);
         };
     }
 
     return (
-        <form className="todo stack-small" onSubmit={submitEdit}>
+        <form className="todo stack-small" onSubmit={submitEditValid}>
             <div className="form-group">
                 
                 
@@ -71,16 +74,15 @@ function EditingTodo({props, setIsEditing}) {
         );
 }
 
-function ViewTodo({props, setIsEditing}) {
-    const completed = props.completed.clone()
+function ViewTodo({props, toggleTaskCompleted, setIsEditing}) {
     return (
         <div className="todo stack-small">
             <div className="c-cb">
                 <input 
                     id={props.id} 
                     type="checkbox" 
-                    checked={completed} 
-                    onChange={() => props.toggleTaskCompleted({id: props.id, toggle: true, newName: props.name})}
+                    checked={props.completed} 
+                    onChange={() => toggleTaskCompleted({id: props.id, toggle: true, newName: props.name})}
                 />
                 
                 <label className="todo-label" htmlFor={props.id}>
