@@ -2,10 +2,8 @@ import {useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider,
 
 import { NavBar } from "./components";
 import { TodoApp } from "./components";
-import { startDB } from './services/db-service';
 
 const queryClient = new QueryClient()
-startDB();
 
 function App() {
   return (
