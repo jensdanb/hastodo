@@ -52,7 +52,6 @@ function TodoApp({initialFilter}) {
                 name={task.name}
                 completed={task.completed}
                 key={task.id + task.name + task.completed}
-                reachedServer={task.reachedServer}
                 invalidateTodoList={invalidateTodos}
                 deleteTask={delTodoMutation.mutate}
             />)

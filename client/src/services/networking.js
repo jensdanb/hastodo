@@ -1,52 +1,59 @@
 
 const hsUrl = 'http://localhost:8080'
 
+const networkErrorResponse = (response) => {
+  return new Response("Network error happened: " + response.status + ' ' + response.statusText, {
+      status: 408,
+      headers: { "Content-Type": "text/plain" },
+  });
+}
+
+const requestErrorResponse = (suspect='') => {
+  return new Response("Invalid request: " + suspect, {
+      status: 400,
+      headers: { "Content-Type": "text/plain" },
+  });
+}
+
 async function getJSON (address) {
     const response = await 
-      fetch(hsUrl + address)
-      .catch(error => {
-        console.error('Error: ', error)
-      });
-  
-    if (!response.ok) {
-      throw new Error(`HTTP error: Status ${response.status}`);
-    }
-    else {return response.json();}
-  };
+        fetch(hsUrl + address)
+        .catch(error => {console.error('Error: ', error)}
+    );
+    if (response.ok){
+        return response.json();
+    } else {return networkErrorResponse(response)};
+};
 
 async function getTodos() {
   return (await getJSON('/getTodos'))
 }
 
 async function modifyingQuery (address, clientTodo) {
-  var method = ""
-  if (["/postTodo", "/postTodos"].includes(address)) {
-    method = "POST"
-  }
-  else if (["/putTodo"].includes(address)) {
-    method = "PUT"
-  }
-  else if (["/delTodo"].includes(address)) {
-    method = "DELETE"
-  }
-  else {throw new Error('Could not resolve HTTP method from address: ' + address)}
+    var method = ""
+    if (["/postTodo", "/postTodos"].includes(address)) {
+        method = "POST"
+    }
+    else if (["/putTodo"].includes(address)) {
+        method = "PUT"
+    }
+    else if (["/delTodo"].includes(address)) {
+        method = "DELETE"
+    }
+    else {return requestErrorResponse(address)};
 
-  const response = await fetch(hsUrl + address, {
-          method: method,
-          body: JSON.stringify(clientTodo),
-          headers: {
-              "Content-type": "application/json; charset=UTF-8"
-          }
-      })
-      .catch(error => {
-          console.error('Error: ', error)
-      }
-      );
-      if (response.ok){
+    const response = await 
+        fetch(hsUrl + address, {
+                method: method,
+                body: JSON.stringify(clientTodo),
+                headers: {"Content-type": "application/json; charset=UTF-8"}
+        })
+        .catch(error => {console.error('Error: ', error)}
+    );
+    if (response.ok){
         return response.json();
-      } 
-      else {console.log(response);}
-  }
+    } else {return networkErrorResponse(response)};
+};
 
 async function postTodo(newTodo) {
   await modifyingQuery('/postTodo', newTodo);

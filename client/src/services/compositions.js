@@ -4,7 +4,7 @@ import { getTodos } from './networking';
 import { createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer } from './databasing';
 
 
-const mutationRequest = async (request) => {
+const mutationRequest = async (todo, request) => {
     const attempt = await 
         fetch(request)
         .then(response => {
