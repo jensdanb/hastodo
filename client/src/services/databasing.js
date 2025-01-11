@@ -1,5 +1,4 @@
-const idb_source = "https://cdn.jsdelivr.net/npm/idb@8/build/umd.js";
-importScripts(idb_source);
+import {openDB} from 'idb';
 
 const todoDBName = 'pending-todos';
 const todoDBVersion = 1;
@@ -45,7 +44,7 @@ async function cacheFailedTodo(failedMethod, todo) {
 
 async function cacheRequest(request) {
     const db = await openTodoDB();
-    const headerArray = Array.from(request.headers.entries());
+    const headerArray = Object.from(request.headers.entries());
     const requestBody = request.body;
     const requestData = {
         url: request.url, 
@@ -86,6 +85,7 @@ async function flushDbToServer(todoDBName, ) {
     else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
 };
 
+export default {createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer};
 
 // --- Junk --- 
 
