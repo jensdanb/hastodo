@@ -60,11 +60,13 @@ const putInCache = async (cacheName, request, response) => {
 };
 
 async function requestNetwork(cacheName, request) {
-    const responseFromNetwork = await fetch(request);
-    // clone because response may be used only once
+    const responseFromNetwork = await 
+        fetch(request)
+        .catch((error) => {console.error('Error: ', error)}
+    );
     putInCache(cacheName, request, responseFromNetwork.clone());
     console.log("Response from network:", responseFromNetwork);
-    return responseFromNetwork;
+    return responseFromNetwork.json();
 }
 
 async function requestCache(cacheName, request) {

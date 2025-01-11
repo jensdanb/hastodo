@@ -1,19 +1,19 @@
 
-const hsUrl = 'http://localhost:8080'
+const hsUrl = 'http://localhost:8080';
 
 const networkErrorResponse = (response) => {
-  return new Response("Network error happened: " + response.status + ' ' + response.statusText, {
-      status: 408,
-      headers: { "Content-Type": "text/plain" },
-  });
-}
+    return new Response("Network error happened: " + response.status + ' ' + response.statusText, {
+        status: 408,
+        headers: { "Content-Type": "text/plain" },
+    });
+};
 
 const requestErrorResponse = (suspect='') => {
-  return new Response("Invalid request: " + suspect, {
-      status: 400,
-      headers: { "Content-Type": "text/plain" },
-  });
-}
+    return new Response("Invalid request: " + suspect, {
+        status: 400,
+        headers: { "Content-Type": "text/plain" },
+    });
+};
 
 async function getJSON (address) {
     const response = await 
@@ -26,11 +26,11 @@ async function getJSON (address) {
 };
 
 async function getTodos() {
-  return (await getJSON('/getTodos'))
-}
+    return (await getJSON('/getTodos'));
+};
 
 async function modifyingQuery (address, clientTodo) {
-    var method = ""
+    var method = "";
     if (["/postTodo", "/postTodos"].includes(address)) {
         method = "POST"
     }
@@ -56,20 +56,20 @@ async function modifyingQuery (address, clientTodo) {
 };
 
 async function postTodo(newTodo) {
-  await modifyingQuery('/postTodo', newTodo);
-}
+    await modifyingQuery('/postTodo', newTodo);
+};
 
 async function postTodos(newTodos) { // Array
-  return await modifyingQuery('/postTodos', newTodos);
-}
+    return await modifyingQuery('/postTodos', newTodos);
+};
 
 async function putTodo({id, toggle, newName}) {
-  await modifyingQuery('/putTodo', [id, toggle, newName]);
-}
+    await modifyingQuery('/putTodo', [id, toggle, newName]);
+};
 
 async function delTodo(id) {
-  await modifyingQuery('/delTodo', id);
-}
+    await modifyingQuery('/delTodo', id);
+};
 
 function setServerData(address, setter) {
     fetch(hsUrl + address)
@@ -79,6 +79,6 @@ function setServerData(address, setter) {
         console.error('Error: ', error)
         }
         );
-}
+};
 
-export {getJSON, hsUrl, getTodos, postTodo, postTodos, putTodo, delTodo}
+export {getJSON, hsUrl, getTodos, postTodo, postTodos, putTodo, delTodo};
