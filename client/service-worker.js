@@ -90,10 +90,13 @@ const cacheFirst = async ({cacheName,  request }) => {
 };
 
 const networkFirst = async ({ cacheName, request }) => {
-    const responseFromNetwork = await fetch(request);
+    const responseFromNetwork = await 
+        fetch(request)
+        .catch((error) => {console.error('Error: ', error)}
+    );
     if (responseFromNetwork.ok) {
         putInCache(cacheName, request, responseFromNetwork.clone());
-        return responseFromNetwork;
+        return responseFromNetwork.json();
     }
     try {
         return requestCache(cacheName, request);
