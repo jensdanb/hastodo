@@ -14,10 +14,14 @@ async function createTodoDB () {
         upgrade (db, oldVersion) {
             const createStores = () => {
                 const postsStore = db.createObjectStore('posts', { autoIncrement: true });
-                postsStore.createIndex('posts', 'id', {unique: true});
+                postsStore.createIndex('id', 'id', {unique: true});
             
                 const putsStore = db.createObjectStore('puts', { autoIncrement: true });
-                putsStore.createIndex('puts', 'id', {unique: true});
+                putsStore.createIndex('id', 'id', {unique: true});
+
+                const requestStore = db.createObjectStore('requests', { autoIncrement: true });
+                requestStore.createIndex('id', 'id', {unique: true});
+                requestStore.createIndex('method', 'method', {unique: false});
             };
             switch (oldVersion) {
                 case 0: 
@@ -37,6 +41,20 @@ async function createTodoDB () {
 async function cacheFailedTodo(failedMethod, todo) {
     const db = await openTodoDB();
     await db.add(failedMethod, todo);
+}
+
+async function cacheRequest(request) {
+    const db = await openTodoDB();
+    const headerArray = Array.from(request.headers.entries());
+    const requestBody = request.body;
+    const requestData = {
+        url: request.url, 
+        method: request.method, 
+        headers: headerArray,
+        body: requestBody
+    };
+    console.log(requestData);
+    await db.add("requests", requestData);
 }
 
 async function getUnsyncedTodos() {

@@ -26,10 +26,11 @@ const SERVER_STATE_CACHE = SW_VESRION + "server_state";
   
 self.addEventListener("fetch", (event) => {
     if (event.request.method !== "GET") {
-        console.log('Not GET request. No Service-worker effect');
+        console.log('Not GET request. ');
+        // event.respondWith(mutationRequest(event.request))
         return;
-    };
-    if (requestIsForStaticContent(event.request)) {
+    }
+    else if (requestIsForStaticContent(event.request)) {
         //console.log("Fetching static content from cache: ", event.request)
         event.respondWith(
             cacheFirst({
@@ -49,6 +50,13 @@ self.addEventListener("fetch", (event) => {
 });
 
 // --- Local Caching --- //
+
+const newErrorResponse = () => {
+    return new Response("Network error happened", {
+        status: 408,
+        headers: { "Content-Type": "text/plain" },
+    });
+}
 
 const putInCache = async (cacheName, request, response) => {
     const cache = await caches.open(cacheName);
@@ -70,10 +78,7 @@ async function requestCache(cacheName, request) {
 
 async function requestsFailed (error) {
     console.error(error);
-    return new Response("Network error happened", {
-        status: 408,
-        headers: { "Content-Type": "text/plain" },
-    });
+    return newErrorResponse();
 }
 
 const cacheFirst = async ({cacheName,  request }) => {
@@ -101,13 +106,33 @@ const networkFirst = async ({ cacheName, request }) => {
     }
 };
 
+const mutationRequest = async (request) => {
+    const attempt = await 
+        fetch(request)
+        .then(response => {
+            if (response.ok) {
+                return response;
+            } else return newErrorResponse();
+        })
+        .catch(error => {
+            console.log("Not OK response from network. Caching request.")
+            cacheRequest(request);
+            return requestsFailed (error);
+        })
+    return attempt;
+
+    
+    
+};
+
 function requestIsForStaticContent(request) {
     const dev_client_host = ":5173/";
     const prod_client_host = ":5050/";
-
+    /* 
+    //Debugging to start caching idb_source. Postponed. 
     if (request.url.includes(idb_source)) {console.log("IDB source confirmed static")}
     else {console.log("Not IDB source", request.url)}
-
+    */
     const patterns = [idb_source, dev_client_host, prod_client_host];
 
     function matchFound (previousMatch, pattern) {
