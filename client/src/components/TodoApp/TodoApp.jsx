@@ -16,22 +16,35 @@ const FILTER_MAP = {
 const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function TodoApp({initialFilter}) {
-    // State
 
     const [intendedOnline, setIntendedOnline] = useState(true);
+    const [actualOnline, setActualOnline] = useState(false);
+    
+
     const queryClient = useQueryClient()
 
-    const todos = useQuery({ queryKey: ['todos'], queryFn: getTodos })
+    // todos :: [{ completed :: bool, id :: string, name :: string, reachedServer :: bool }]
+    const todos = useQuery({ 
+        queryKey: ['todos'], 
+        queryFn: async () => {
+            return await getTodos()
+                .then((todos) => {
+                    setActualOnline(true);
+                    return todos;
+                })
+                .catch(() => setActualOnline(false));
+            }
+        });
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
 
     const addTodoMutation = useMutation({
         mutationFn: (name) => {
-            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, reachedServer: true };
+            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, reachedServer: false };
             return postTodo(newTask)
         },
         onSettled: invalidateTodos,
-      })
+      });
     // const { postIsPending, postSubmittedAt, postVariables, postMutate, postIsError } = postTodoMutation
 
     const delTodoMutation = useMutation({
@@ -77,6 +90,7 @@ function TodoApp({initialFilter}) {
             <PwaController 
                 intendedOnline={intendedOnline} 
                 toggleOnline={() => {setIntendedOnline(intendedOnline ? false : true)}}
+                actualOnline={actualOnline} 
                 />
 
             <Form onSubmit={addTodoMutation.mutate}/>

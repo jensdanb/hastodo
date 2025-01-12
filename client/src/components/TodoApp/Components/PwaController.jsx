@@ -10,7 +10,7 @@ function PwaController (props) {
 
     return (
         <>
-            {props.intendedOnline ? <OnlinePwa/> : <OfflinePwa/>}
+            {props.intendedOnline ? <OnlinePwa actualOnline={props.actualOnline}/> : <OfflinePwa/>}
             <button 
                 type="button" 
                 className="btn toggle-btn" 
@@ -21,16 +21,11 @@ function PwaController (props) {
         </>)
 };
 
-function OnlinePwa (){
-    const {data: actualOnline, isLoading, error} = useQuery({ 
-            queryKey: ['connectionStatusQueryKey'], 
-            queryFn: () => getJSON('/serverConnected')
-        });
+function OnlinePwa (props){
+    
     function renderStatus () {
-        if (isLoading) return <div>Trying to reach server...</div>;
-        else if (error) return <div>Failed to reach server</div>;
-        else if (actualOnline) return <div>Online</div>;
-        else return <div>Offline</div>;
+        if (props.actualOnline) return <div>Online</div>;
+        else return <div>Connection failed</div>;
     };
 
     return (

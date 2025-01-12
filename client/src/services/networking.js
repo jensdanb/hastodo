@@ -16,13 +16,11 @@ const requestErrorResponse = (suspect='') => {
 };
 
 async function getJSON (address) {
-    const response = await 
-        fetch(hsUrl + address)
-        .catch(error => {console.error('Error: ', error)}
-    );
-    if (response.ok){
-        return response.json();
-    } else {return networkErrorResponse(response)};
+    const response = await fetch(hsUrl + address);
+    if (!response.ok){
+        throw new Error('Network response was not ok')
+    } 
+    else return response.json();
 };
 
 async function getTodos() {
@@ -42,17 +40,15 @@ async function modifyingQuery (address, clientTodo) {
     }
     else {return requestErrorResponse(address)};
 
-    const response = await 
-        fetch(hsUrl + address, {
+    const response = await fetch(hsUrl + address, {
                 method: method,
                 body: JSON.stringify(clientTodo),
                 headers: {"Content-type": "application/json; charset=UTF-8"}
         })
-        .catch(error => {console.error('Error: ', error)}
-    );
-    if (response.ok){
-        return response.json();
-    } else {return networkErrorResponse(response)};
+    if (!response.ok){
+        throw new Error('Network response was not ok')
+    } 
+    else return response.json();
 };
 
 async function postTodo(newTodo) {
