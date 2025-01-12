@@ -37,12 +37,15 @@ self.addEventListener("fetch", (event) => {
         )
     }
     else {
+        return;
+        /*
         event.respondWith(
             networkFirst({
                 cacheName: SERVER_STATE_CACHE,
                 request: event.request
             }),
         );
+        */
     }
 });
 
