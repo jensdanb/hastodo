@@ -89,7 +89,10 @@ function TodoApp({initialFilter}) {
             <h1>TodoMatic v2</h1>
             <PwaController 
                 intendedOnline={intendedOnline} 
-                toggleOnline={() => {setIntendedOnline(intendedOnline ? false : true)}}
+                toggleOnline={() => {
+                    if (!intendedOnline) {invalidateTodos()}
+                    setIntendedOnline(intendedOnline ? false : true)
+                }}
                 actualOnline={actualOnline} 
                 />
 

@@ -1,10 +1,3 @@
-import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import 'idb';
-
-import { getJSON, hsUrl } from '../../../services/networking';
-
-
 
 function PwaController (props) {
 
@@ -25,7 +18,7 @@ function OnlinePwa (props){
     
     function renderStatus () {
         if (props.actualOnline) return <div>Online</div>;
-        else return <div>Connection failed</div>;
+        else return <div>Tried to connect, but failed</div>;
     };
 
     return (
@@ -38,7 +31,7 @@ function OnlinePwa (props){
 function OfflinePwa (){
 
     function renderStatus () {
-        return <div>Offline</div>;
+        return <div>Intentionally Offline</div>;
     };
 
     return (
