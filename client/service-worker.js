@@ -69,7 +69,6 @@ async function requestNetwork(cacheName, request) {
         .catch((error) => {console.error('Error: ', error)}
     );
     putInCache(cacheName, request, responseFromNetwork.clone());
-    console.log("Response from network:", responseFromNetwork);
     return responseFromNetwork;
 }
 
