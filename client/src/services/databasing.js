@@ -2,11 +2,16 @@ import {openDB} from 'idb';
 
 const todoDBName = 'pending-todos';
 const todoDBVersion = 1;
-createTodoDB();
 
 async function openTodoDB () {
     return await idb.openDB(todoDBName, todoDBVersion);
-}
+};
+
+function notEmpty (cacheResult) {
+    if (Array.isArray(cacheResult) && cacheResult.length != 0) 
+        return true
+    else return false;
+};
 
 async function createTodoDB () {
     const dbPromise = await idb.openDB(todoDBName, todoDBVersion, {
@@ -18,9 +23,7 @@ async function createTodoDB () {
                 const putsStore = db.createObjectStore('puts', { autoIncrement: true });
                 putsStore.createIndex('id', 'id', {unique: true});
 
-                const requestStore = db.createObjectStore('requests', { autoIncrement: true });
-                requestStore.createIndex('id', 'id', {unique: true});
-                requestStore.createIndex('method', 'method', {unique: false});
+                const todoListStore = db.createObjectStore('todoList', { autoIncrement: true });
             };
             switch (oldVersion) {
                 case 0: 
@@ -35,31 +38,22 @@ async function createTodoDB () {
             }
         }
     });
-}
+};
 
 async function cacheFailedTodo(failedMethod, todo) {
     const db = await openTodoDB();
     await db.add(failedMethod, todo);
 }
 
-async function cacheRequest(request) {
-    const db = await openTodoDB();
-    const headerArray = Object.from(request.headers.entries());
-    const requestBody = request.body;
-    const requestData = {
-        url: request.url, 
-        method: request.method, 
-        headers: headerArray,
-        body: requestBody
-    };
-    console.log(requestData);
-    await db.add("requests", requestData);
-}
-
 async function getUnsyncedTodos() {
     const db = await openTodoDB();
     return await db.getAll('posts')
-}
+};
+
+async function cacheTodoList(todos) {
+    const db = await openTodoDB();
+    await db.put('todoList', todos, 1);
+};
 
 async function networkTransaction(networkAction, dbAction) {
     const db = await openTodoDB();
@@ -72,7 +66,7 @@ async function flushDbToServer(todoDBName, ) {
     const postsInCache = tx.objectStore('posts');
 
     const unSyncedTodos = await postsInCache.getAll();
-    if (Array.isArray(unSyncedTodos) && unSyncedTodos.length != 0) {
+    if (notEmpty(unSyncedTodos)) {
         console.log('Flushing');
         console.dir(unSyncedTodos);
         postTodos(unSyncedTodos)
@@ -85,7 +79,7 @@ async function flushDbToServer(todoDBName, ) {
     else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
 };
 
-export default {createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer};
+export default {cacheTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer};
 
 // --- Junk --- 
 

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react"; 
 import { nanoid } from "nanoid";
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getTodos, postTodo, postTodos, putTodo, delTodo } from "../../services/networking"
+import { getTodos, postTodo, postTodos, putTodo, delTodo } from "../../services/networking";
+import { cacheTodoList } from "../../services/databasing";
 import { Todo, Form, FilterButton, PwaController } from "./Components";
 
 
@@ -32,7 +33,12 @@ function TodoApp({initialFilter}) {
                     setActualOnline(true);
                     return todos;
                 })
-                .catch(() => setActualOnline(false));
+                .catch(() => {
+                    setActualOnline(false);
+                    const todoList = todos.data.map((todo) => {return {...todo, reachedServer: false}});
+                    console.log(todoList);
+                    cacheTodoList(todoList);
+                });
             }
         });
 
