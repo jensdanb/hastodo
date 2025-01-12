@@ -1,6 +1,8 @@
 
 // --- Install & Activate --- //
 
+const client_server = "http://localhost";
+
 addEventListener("install", (event) => {
     event.addRoutes({
       condition: {
@@ -27,7 +29,6 @@ self.addEventListener("fetch", (event) => {
         return;
     }
     else if (requestIsForStaticContent(event.request)) {
-        //console.log("Fetching static content from cache: ", event.request)
         event.respondWith(
             cacheFirst({
                 cacheName: STATIC_CACHE,
@@ -66,7 +67,7 @@ async function requestNetwork(cacheName, request) {
     );
     putInCache(cacheName, request, responseFromNetwork.clone());
     console.log("Response from network:", responseFromNetwork);
-    return responseFromNetwork.json();
+    return responseFromNetwork;
 }
 
 async function requestCache(cacheName, request) {
@@ -98,7 +99,7 @@ const networkFirst = async ({ cacheName, request }) => {
     );
     if (responseFromNetwork.ok) {
         putInCache(cacheName, request, responseFromNetwork.clone());
-        return responseFromNetwork.json();
+        return responseFromNetwork;
     }
     try {
         return requestCache(cacheName, request);
@@ -108,17 +109,21 @@ const networkFirst = async ({ cacheName, request }) => {
 };
 
 function requestIsForStaticContent(request) {
+    const url = new URL(request.url); 
     const dev_client_host = ":5173/";
     const prod_client_host = ":5050/";
     const patterns = [dev_client_host, prod_client_host];
 
     function matchFound (previousMatch, pattern) {
-        if (previousMatch || request.url.includes(pattern)) {return true}
+        if (previousMatch || url.href.includes(pattern)) {return true}
         else return false;
     }
     const urlMatchesAnyPattern = patterns.reduce(matchFound, false);
 
-    return urlMatchesAnyPattern; // Bool return
+    return (
+        urlMatchesAnyPattern && 
+        url.href != client_server + dev_client_host && 
+        url.href != client_server + prod_client_host); // Bool return
 }
 
 // --- IndexedDB for offline work --- //
