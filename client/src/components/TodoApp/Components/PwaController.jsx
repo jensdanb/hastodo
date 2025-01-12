@@ -6,18 +6,17 @@ import { getJSON, hsUrl } from '../../../services/networking';
 
 
 
-function PwaController () {
-    const [intendedOnline, setIntendedOnline] = useState(false);
+function PwaController (props) {
 
     return (
         <>
-            {intendedOnline ? <OnlinePwa/> : <OfflinePwa/>}
+            {props.intendedOnline ? <OnlinePwa/> : <OfflinePwa/>}
             <button 
                 type="button" 
                 className="btn toggle-btn" 
                 aria-pressed="true"
-                onMouseDown={() => setIntendedOnline(false)}>
-                <span>Go offline </span>
+                onMouseDown={props.toggleOnline}>
+                <span>Toggle online </span>
             </button>
         </>)
 };

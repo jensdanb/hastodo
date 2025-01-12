@@ -18,6 +18,7 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 function TodoApp({initialFilter}) {
     // State
 
+    const [intendedOnline, setIntendedOnline] = useState(true);
     const queryClient = useQueryClient()
 
     const todos = useQuery({ queryKey: ['todos'], queryFn: getTodos })
@@ -73,7 +74,10 @@ function TodoApp({initialFilter}) {
         <>
         <div className="todoapp stack-large content">
             <h1>TodoMatic v2</h1>
-            <PwaController/>
+            <PwaController 
+                intendedOnline={intendedOnline} 
+                toggleOnline={() => {setIntendedOnline(intendedOnline ? false : true)}}
+                />
 
             <Form onSubmit={addTodoMutation.mutate}/>
 
