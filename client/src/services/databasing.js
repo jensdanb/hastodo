@@ -1,10 +1,10 @@
-import {openDB} from 'idb';
+import {openDB} from 'idb'
 
 const todoDBName = 'pending-todos';
 const todoDBVersion = 1;
 
 async function openTodoDB () {
-    return await idb.openDB(todoDBName, todoDBVersion);
+    return await openDB(todoDBName, todoDBVersion);
 };
 
 function notEmpty (cacheResult) {
@@ -14,7 +14,7 @@ function notEmpty (cacheResult) {
 };
 
 async function createTodoDB () {
-    const dbPromise = await idb.openDB(todoDBName, todoDBVersion, {
+    const dbPromise = await openDB(todoDBName, todoDBVersion, {
         upgrade (db, oldVersion) {
             const createStores = () => {
                 const postsStore = db.createObjectStore('posts', { autoIncrement: true });
@@ -79,7 +79,7 @@ async function flushDbToServer(todoDBName, ) {
     else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
 };
 
-export default {cacheTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer};
+export {cacheTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer};
 
 // --- Junk --- 
 
