@@ -24,7 +24,7 @@ data Todo = Todo
     { id :: UUID
     , name :: Name
     , completed :: Bool
-    , reachedServer :: Bool
+    , knownUnSynced :: Bool
     } deriving (Eq, Show, Generic)
 
 instance ToJSON Todo
@@ -46,18 +46,18 @@ initialize = newTVarIO []
 --- Logic
 --- 
 
-reachServer :: Todo -> Todo 
-reachServer todo = todo{reachedServer=True}
+markSynced :: Todo -> Todo 
+markSynced todo = todo{knownUnSynced=False}
 
 modifyTodoList :: (TodoList -> TodoList) -> TodoVar -> IO ()
 modifyTodoList f tVar = atomically $ modifyTVar tVar f
 
 insertTodo :: Todo -> TodoVar -> IO ()
-insertTodo newTodo = modifyTodoList (reachServer newTodo : )
+insertTodo newTodo = modifyTodoList (markSynced newTodo : )
 
 insertTodos :: [Todo] -> TodoVar -> IO ()
 insertTodos newTodos = modifyTodoList $ (reverse newTodos' <>)
-  where newTodos' = map reachServer newTodos
+  where newTodos' = map markSynced newTodos
 
 deleteTodo :: UUID -> TodoVar -> IO ()
 deleteTodo uuid = modifyTodoList (filter ((/= uuid) . (.id)))
@@ -70,7 +70,7 @@ putTodo (uuid, toggle, newName) = modifyTodoList (map putter)
       if oldTodo.id /= uuid then oldTodo 
       else oldTodo { completed = if toggle then not oldTodo.completed else oldTodo.completed
                    , name = if newName=="" then oldTodo.name else newName
-                   , reachedServer = True}
+                   , knownUnSynced = False}
 
 replaceTodo :: Todo -> TodoVar -> IO ()
 replaceTodo newTodo = modifyTodoList (map replaceIfSameId)
@@ -107,7 +107,7 @@ rename todo name = todo {name=name}
 --- 
 
 baseTodo :: Todo
-baseTodo = Todo {completed=False, reachedServer=True}
+baseTodo = Todo {completed=False, knownUnSynced=True}
 
 mock1, mock2, mock3, mock4 :: Todo
 mock1 = baseTodo {id="todo-1sgsgerjkg", name="Eat", completed=True}

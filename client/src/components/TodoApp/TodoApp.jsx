@@ -24,7 +24,7 @@ function TodoApp({initialFilter}) {
 
     const queryClient = useQueryClient()
 
-    // todos :: [{ completed :: bool, id :: string, name :: string, reachedServer :: bool }]
+    // todos :: [{ completed :: bool, id :: string, name :: string, knownUnSynced :: bool }]
     const todos = useQuery({ 
         queryKey: ['todos'], 
         queryFn: async () => {
@@ -35,9 +35,7 @@ function TodoApp({initialFilter}) {
                 })
                 .catch(() => {
                     setActualOnline(false);
-                    const todoList = todos.data.map((todo) => {return {...todo, reachedServer: false}});
-                    console.log(todoList);
-                    cacheTodoList(todoList);
+                    cacheTodoList(todos.data);
                 });
             }
         });
@@ -46,7 +44,7 @@ function TodoApp({initialFilter}) {
 
     const addTodoMutation = useMutation({
         mutationFn: (name) => {
-            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, reachedServer: false };
+            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, knownUnSynced: true };
             return postTodo(newTask)
         },
         onSettled: invalidateTodos,
