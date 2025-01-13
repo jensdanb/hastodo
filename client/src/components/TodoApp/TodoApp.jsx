@@ -69,6 +69,7 @@ function TodoApp({initialFilter}) {
                 id={task.id}
                 name={task.name}
                 completed={task.completed}
+                knownUnSynced={task.knownUnSynced}
                 key={task.id + task.name + task.completed}
                 invalidateTodoList={invalidateTodos}
                 deleteTask={delTodoMutation.mutate}
