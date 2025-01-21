@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getTodos, postTodo, postTodos, putTodo, delTodo } from "../../services/networking";
-import { cacheTodoList } from "../../services/databasing";
+import { cacheTodoList, dbGetTodoList, cacheFailedTodo } from "../../services/databasing";
 import { Todo, Form, FilterButton, PwaController } from "./Components";
 
 
@@ -33,22 +33,26 @@ function TodoApp({initialFilter}) {
                     setActualOnline(true);
                     return todos;
                 })
-                .catch(() => {
+                .catch(async () => {
                     setActualOnline(false);
                     cacheTodoList(todos.data);
                 });
             }
-        });
+    });
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
 
     const addTodoMutation = useMutation({
-        mutationFn: (name) => {
-            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, knownUnSynced: true };
+        mutationFn: async (name) => {
+            const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, knownUnSynced: true }; 
+
             return postTodo(newTask)
+                .catch(async (error) => {
+                    await cacheFailedTodo('post', newTask);
+                });
         },
         onSettled: invalidateTodos,
-      });
+    });
     // const { postIsPending, postSubmittedAt, postVariables, postMutate, postIsError } = postTodoMutation
 
     const delTodoMutation = useMutation({
