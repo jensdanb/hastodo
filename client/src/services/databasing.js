@@ -17,10 +17,10 @@ async function createTodoDB () {
     const dbPromise = await openDB(todoDBName, todoDBVersion, {
         upgrade (db, oldVersion) {
             const createStores = () => {
-                const postsStore = db.createObjectStore('posts', { autoIncrement: true });
+                const postsStore = db.createObjectStore('post', { autoIncrement: true });
                 postsStore.createIndex('id', 'id', {unique: true});
             
-                const putsStore = db.createObjectStore('puts', { autoIncrement: true });
+                const putsStore = db.createObjectStore('put', { autoIncrement: true });
                 putsStore.createIndex('id', 'id', {unique: true});
 
                 const todoListStore = db.createObjectStore('todoList', { autoIncrement: true });
@@ -40,27 +40,32 @@ async function createTodoDB () {
     });
 };
 
-async function cacheFailedTodo(failedMethod, todo) {
+async function cacheFailedTodo (failedMethod, todo) {
     const db = await openTodoDB();
     await db.add(failedMethod, todo);
 }
 
-async function getUnsyncedTodos() {
+async function getUnsyncedTodos () {
     const db = await openTodoDB();
     return await db.getAll('posts')
 };
 
-async function cacheTodoList(todos) {
+async function dbGetTodoList () {
+    const db = await openTodoDB();
+    return await db.getAll('todoList')[0]
+};
+
+async function cacheTodoList (todos) {
     const db = await openTodoDB();
     await db.put('todoList', todos, 1);
 };
 
-async function networkTransaction(networkAction, dbAction) {
+async function networkTransaction (networkAction, dbAction) {
     const db = await openTodoDB();
     const tx = db.transaction('posts', 'readwrite');
 }
 
-async function flushDbToServer(todoDBName, ) {
+async function flushDbToServer (todoDBName, ) {
     const db = await openTodoDB();
     const tx = db.transaction('posts', 'readwrite');
     const postsInCache = tx.objectStore('posts');
@@ -79,7 +84,7 @@ async function flushDbToServer(todoDBName, ) {
     else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
 };
 
-export {cacheTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer};
+export { cacheTodoList, dbGetTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer };
 
 // --- Junk --- 
 

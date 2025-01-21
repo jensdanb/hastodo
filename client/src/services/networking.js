@@ -77,4 +77,4 @@ function setServerData(address, setter) {
         );
 };
 
-export {getJSON, hsUrl, getTodos, postTodo, postTodos, putTodo, delTodo};
+export { getJSON, hsUrl, getTodos, postTodo, postTodos, putTodo, delTodo };
