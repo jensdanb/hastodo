@@ -60,7 +60,7 @@ insertTodos newTodos = modifyTodoList $ (reverse newTodos' <>)
   where newTodos' = map markSynced newTodos
 
 deleteTodo :: UUID -> TodoVar -> IO ()
-deleteTodo uuid = modifyTodoList (filter ((/= uuid) . (.id)))
+deleteTodo uuid = modifyTodoList (filter (\todo -> todo.id /= uuid))
 
 putTodo :: PutData -> TodoVar -> IO ()
 putTodo (uuid, toggle, newName) = modifyTodoList (map putter)
@@ -69,7 +69,7 @@ putTodo (uuid, toggle, newName) = modifyTodoList (map putter)
     putter oldTodo = 
       if oldTodo.id /= uuid then oldTodo 
       else oldTodo { completed = if toggle then not oldTodo.completed else oldTodo.completed
-                   , name = if newName=="" then oldTodo.name else newName
+                   , name = if newName/="" then newName else oldTodo.name
                    , knownUnSynced = False}
 
 replaceTodo :: Todo -> TodoVar -> IO ()
