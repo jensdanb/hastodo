@@ -5,5 +5,5 @@ Overengineered Todo-app for learning purposes.
 | HTTP networking in Haskell          | Complete | Haskell    |  
 | Software Transactional Memory (STM) | Complete | Haskell    |
 | Modern web UI and querying          | Complete | ReactJS    | 
-| Offline work and sync               | Ongoing  | JavaScr    | 
+| Offline work and sync               | Ongoing  | ReactJS    | 
 | Deploying to cloud server           | Pending  | TBC        |  
