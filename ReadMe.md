@@ -1,8 +1,9 @@
 Overengineered Todo-app for learning purposes. 
 
-Learning goals [Status | Technology | Goal]: 
-- Complete | Haskell |  Serving a HTTP server 
-- Complete | Haskell | Software Transactional Memory (STM)
-- Complete | ReactJS | Modern web UI and HTTP fetching
-- Ongoing  | JavaScr | Allow continued work when disconnected, submit changes when reconnected
-- Pending^ | TBC     |  Deploying to cloud server
+| Learning goal                       | Status   | Technology |
+| ----------------------------------- | -------- | ---------- | 
+| Serving a HTTP server               | Complete | Haskell    |  
+| Software Transactional Memory (STM) | Complete | Haskell    |
+| Modern web UI and querying          | Complete | ReactJS    | 
+| Offline work and sync               | Ongoing  | JavaScr    | 
+| Deploying to cloud server           | Pending  | TBC        |  
