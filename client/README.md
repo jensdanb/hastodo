@@ -1,8 +1,25 @@
-# React + Vite
+# Front-end built 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Tool stack
+Build: Vite
+UI: React + CSS 
+Querying: Tanstack
+Caching: IDB
 
-Currently, two official plugins are available:
+Local-only state managed with vanilla React. 
+Shared state managed with tanstack. 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Offline work enabled by IndexedDB. Tanstack mutations try requests, and on error puts the attempted mutation in db. 
+
+Only the useQuery, not the useMutations, needs to setState the "actualOnline" to false on request fail, because all the mutations will trigger useQuery with invalidateQuery anyway. 
+
+Sync: First fetch from server, then make posts, then make puts, then make deletes. 
+All query/mutation functions should first check if there is cache and if yes try sync before their regular request. 
+
+function (newData) => {
+    if (anyUnSynced) {
+        trySync() //ends with setting anyUnSynced=True
+    }
+    doQuery()
+        .catch((newData) => cache)
+}
