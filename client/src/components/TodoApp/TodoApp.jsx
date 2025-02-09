@@ -42,6 +42,11 @@ function TodoApp({initialFilter}) {
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
 
+    const trySync = async (cachedPosts, cachedPuts, cachedDeletes) => {
+        todosAfterSync = invalidateTodos()
+            .then(() => {})
+    }
+
     const addTodoMutation = useMutation({
         mutationFn: async (name) => {
             const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, knownUnSynced: true }; 
