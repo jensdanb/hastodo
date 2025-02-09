@@ -23,7 +23,7 @@ async function getJSON (address) {
     else return response.json();
 };
 
-async function getTodos() {
+async function netGetTodos() {
     return (await getJSON('/getTodos'));
 };
 
@@ -51,19 +51,19 @@ async function modifyingQuery (address, clientTodo) {
     else return response.json();
 };
 
-async function postTodo(newTodo) {
+async function netPostTodo(newTodo) {
     await modifyingQuery('/postTodo', newTodo);
 };
 
-async function postTodos(newTodos) { // Array
+async function netPostTodos(newTodos) { // Array
     return await modifyingQuery('/postTodos', newTodos);
 };
 
-async function putTodo({id, toggle, newName}) {
+async function netPutTodo({id, toggle, newName}) {
     await modifyingQuery('/putTodo', [id, toggle, newName]);
 };
 
-async function delTodo(id) {
+async function netDelTodo(id) {
     await modifyingQuery('/delTodo', id);
 };
 
@@ -77,4 +77,4 @@ function setServerData(address, setter) {
         );
 };
 
-export { getJSON, hsUrl, getTodos, postTodo, postTodos, putTodo, delTodo };
+export { getJSON, hsUrl, netGetTodos, netPostTodo, netPostTodos, netPutTodo, netDelTodo };

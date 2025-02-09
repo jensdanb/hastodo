@@ -1,5 +1,7 @@
 import {useState} from "react"; 
 
+// Child component of TodoApp
+
 function Form(props) {
     
     const [name, setName] = useState("");

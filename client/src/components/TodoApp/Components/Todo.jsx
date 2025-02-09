@@ -1,13 +1,13 @@
 import {useState} from "react"; 
 import { useMutation } from "@tanstack/react-query";
-import { putTodo } from "../../../services/networking";
+import { netPutTodo } from "../../../services/networking";
 
 function Todo(props) {
     
     const [isEditing, setIsEditing] = useState(false);
     
     const putTodoMutation = useMutation({
-            mutationFn: putTodo,
+            mutationFn: netPutTodo,
             onSettled: props.invalidateTodoList,
             mutationKey: ['putTodo']
         })
