@@ -17,30 +17,27 @@ function Form(props) {
     }
 
     return (
-      <form 
-      onSubmit={handleSubmit}
-      >
+        <form onSubmit={handleSubmit}>
+            <h2 className="label-wrapper">
+                <label htmlFor="new-todo-input" className="label__lg">
+                    What more to do?
+                </label>
+            </h2>
 
-        <h2 className="label-wrapper">
-          <label htmlFor="new-todo-input" className="label__lg">
-            What more to do?
-          </label>
-        </h2>
+            <input
+                type="text"
+                id="new-todo-input"
+                className="input input__lg"
+                name="text"
+                autoComplete="on"
+                value={name}
+                onChange={handleTyping}
+            />
 
-        <input
-          type="text"
-          id="new-todo-input"
-          className="input input__lg"
-          name="text"
-          autoComplete="on"
-          value={name}
-          onChange={handleTyping}
-        />
-
-        <button type="submit" className="btn btn__strong btn__lg">
-          Add
-        </button>
-      </form>
+            <button type="submit" className="btn btn__strong btn__lg">
+              Add
+            </button>
+        </form>
     );
   }
   
