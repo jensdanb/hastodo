@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { netGetTodos, netPostTodo, netDelTodo } from "../../services/networking";
+import { netGetTodos, netPostTodo, netDelTodo, netPostTodos, netPutTodo, netPutTodos } from "../../services/networking";
 import { cacheTodoList, dbGetTodoList, cacheFailedTodo } from "../../services/databasing";
 import { Todo, Form, FilterButton, PwaController } from "./Components";
 
@@ -44,7 +44,13 @@ function TodoApp({initialFilter}) {
 
     const trySync = async (cachedPosts, cachedPuts, cachedDeletes) => {
         todosAfterSync = invalidateTodos()
-            .then(() => {})
+            .then(() => {netPostTodos(cachedPosts)})
+            //.then(() => {clearPostCache})
+            .then(() => {netPutTodos(cachedPuts)})
+            //.then(() => {netDelTodos(cachedDeletes)})
+            .then(() => {invalidateTodos()})
+            .then(() => setActualOnline(true))
+            .catch(() => setActualOnline(false))
     }
 
     const addTodoMutation = useMutation({
