@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { netGetTodos, netPostTodo, netDelTodo, netPostTodos, netPutTodo, netPutTodos } from "../../services/networking";
+import { netGetTodos, netPostTodo, netDelTodo, netPostTodos, netPutTodo } from "../../services/networking";
 import { cacheTodoList, dbGetTodoList, cacheFailedTodo } from "../../services/databasing";
 import { Todo, Form, FilterButton, PwaController } from "./Components";
 
@@ -20,7 +20,18 @@ function TodoApp({initialFilter}) {
 
     const [intendedOnline, setIntendedOnline] = useState(true);
     const [actualOnline, setActualOnline] = useState(false);
-    
+
+    function todoComponent(todoData) { 
+        return <Todo
+                    id={todoData.id}
+                    name={todoData.name}
+                    completed={todoData.completed}
+                    knownUnSynced={todoData.knownUnSynced}
+                    key={todoData.id + todoData.name + todoData.completed}
+                    invalidateTodoList={invalidateTodos}
+                    deleteTask={delTodoMutation.mutate}
+                />
+    }
 
     const queryClient = useQueryClient()
 
@@ -29,29 +40,20 @@ function TodoApp({initialFilter}) {
         queryKey: ['todos'], 
         queryFn: async () => {
             return await netGetTodos()
-                .then((todos) => {
+                .then(async (todos) => {
+                    await cacheTodoList(todos);
                     setActualOnline(true);
                     return todos;
                 })
                 .catch(async () => {
                     setActualOnline(false);
-                    cacheTodoList(todos.data);
+                    return await dbGetTodoList();
                 });
             }
     });
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
 
-    const trySync = async (cachedPosts, cachedPuts, cachedDeletes) => {
-        todosAfterSync = invalidateTodos()
-            .then(() => {netPostTodos(cachedPosts)})
-            //.then(() => {clearPostCache})
-            .then(() => {netPutTodos(cachedPuts)})
-            //.then(() => {netDelTodos(cachedDeletes)})
-            .then(() => {invalidateTodos()})
-            .then(() => setActualOnline(true))
-            .catch(() => setActualOnline(false))
-    }
 
     const addTodoMutation = useMutation({
         mutationFn: async (name) => {
@@ -78,17 +80,7 @@ function TodoApp({initialFilter}) {
 
     const taskList = todos.data
         ?.filter(FILTER_MAP[taskFilter])
-        ?.map((task) => (
-            <Todo
-                id={task.id}
-                name={task.name}
-                completed={task.completed}
-                knownUnSynced={task.knownUnSynced}
-                key={task.id + task.name + task.completed}
-                invalidateTodoList={invalidateTodos}
-                deleteTask={delTodoMutation.mutate}
-            />)
-        );
+        ?.map(todoComponent);
     
     const filterButtons = FILTER_NAMES.map((name) => 
         <FilterButton 

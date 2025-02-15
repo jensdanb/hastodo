@@ -52,7 +52,7 @@ async function getUnsyncedTodos () {
 
 async function dbGetTodoList () {
     const db = await openTodoDB();
-    return await db.getAll('todoList')[0]
+    return await db.getAll('todoList')
 };
 
 async function cacheTodoList (todos) {
