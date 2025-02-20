@@ -21,34 +21,13 @@ function TodoApp({initialFilter}) {
     const [intendedOnline, setIntendedOnline] = useState(true);
     const [actualOnline, setActualOnline] = useState(false);
 
-    function todoComponent(todoData) { 
-        return <Todo
-                    id={todoData.id}
-                    name={todoData.name}
-                    completed={todoData.completed}
-                    knownUnSynced={todoData.knownUnSynced}
-                    key={todoData.id + todoData.name + todoData.completed}
-                    invalidateTodoList={invalidateTodos}
-                    deleteTask={delTodoMutation.mutate}
-                />
-    }
-
     const queryClient = useQueryClient()
 
     // todos :: [{ completed :: bool, id :: string, name :: string, knownUnSynced :: bool }]
     const todos = useQuery({ 
         queryKey: ['todos'], 
         queryFn: async () => {
-            return await netGetTodos()
-                .then(async (todos) => {
-                    await cacheTodoList(todos);
-                    setActualOnline(true);
-                    return todos;
-                })
-                .catch(async () => {
-                    setActualOnline(false);
-                    return await dbGetTodoList();
-                });
+            return await dbGetTodoList();
             }
     });
 
@@ -77,6 +56,18 @@ function TodoApp({initialFilter}) {
         
         
     const [taskFilter, setTaskFilter] = useState(initialFilter);
+    
+    function todoComponent(todoData) { 
+        return <Todo
+                    id={todoData.id}
+                    name={todoData.name}
+                    completed={todoData.completed}
+                    knownUnSynced={todoData.knownUnSynced}
+                    key={todoData.id + todoData.name + todoData.completed}
+                    invalidateTodoList={invalidateTodos}
+                    deleteTask={delTodoMutation.mutate}
+                />
+    }
 
     const taskList = todos.data
         ?.filter(FILTER_MAP[taskFilter])
@@ -91,7 +82,6 @@ function TodoApp({initialFilter}) {
             />
     );
 
-    // Visuals
     const headingText = `${todos.data?.length} tasks, ${todos.data?.filter(FILTER_MAP["Active"]).length} remaining`;
     
     return (
