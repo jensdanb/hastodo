@@ -60,11 +60,7 @@ async function cacheTodoList (todos) {
     await db.put('todoList', todos, 1);
 };
 
-async function networkTransaction (networkAction, dbAction) {
-    const db = await openTodoDB();
-    const tx = db.transaction('posts', 'readwrite');
-}
-
+/*
 async function flushDbToServer (todoDBName, ) {
     const db = await openTodoDB();
     const tx = db.transaction('posts', 'readwrite');
@@ -83,8 +79,9 @@ async function flushDbToServer (todoDBName, ) {
     } 
     else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
 };
+*/
 
-export { cacheTodoList, dbGetTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos, flushDbToServer };
+export { cacheTodoList, dbGetTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos };
 
 // --- Junk --- 
 
