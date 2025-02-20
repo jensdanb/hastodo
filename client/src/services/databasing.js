@@ -60,6 +60,10 @@ async function cacheTodoList (todos) {
     await db.put('todoList', todos, 1);
 };
 
+export { cacheTodoList, dbGetTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos };
+
+// --- Junk --- 
+
 /*
 async function flushDbToServer (todoDBName, ) {
     const db = await openTodoDB();
@@ -80,10 +84,6 @@ async function flushDbToServer (todoDBName, ) {
     else console.dir('Nothing to upload: ' + unSyncedTodos.map(JSON.stringify));
 };
 */
-
-export { cacheTodoList, dbGetTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos };
-
-// --- Junk --- 
 
 /*
 async function addItemToStore () {
