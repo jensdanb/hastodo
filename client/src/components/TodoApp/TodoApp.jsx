@@ -30,6 +30,7 @@ function TodoApp({initialFilter}) {
     });
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
+    
     const netInvalidateTodos = async () => {
         const serverTodos = await netGetTodos()
             .then((responseJson) => {
@@ -47,12 +48,10 @@ function TodoApp({initialFilter}) {
             return netPostTodo(newTask)
                 .then(async () => {
                     await dbAddTodo({...newTask, knownUnSynced: false})
-                    invalidateTodos();
                 })
                 .catch(async (error) => {
-                    dbAddTodo(newTask);
+                    await dbAddTodo(newTask);
                     console.log('Failed to post todo. Store local copy');
-                    invalidateTodos();
                 });
         },
         onSettled: invalidateTodos,
