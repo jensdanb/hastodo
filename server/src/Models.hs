@@ -15,7 +15,6 @@ import Data.Maybe (isJust)
 ---
 type TodoKeyValue = (UUID, Todo)
 type TodoList = [Todo]
-type PutData = (UUID, Bool, Name)
 
 type UUID = L.Text
 type Name = L.Text
@@ -62,15 +61,13 @@ insertTodos newTodos = modifyTodoList $ (reverse newTodos' <>)
 deleteTodo :: UUID -> TodoVar -> IO ()
 deleteTodo uuid = modifyTodoList (filter (\todo -> todo.id /= uuid))
 
-putTodo :: PutData -> TodoVar -> IO ()
-putTodo (uuid, toggle, newName) = modifyTodoList (map putter)
+putTodo :: Todo -> TodoVar -> IO ()
+putTodo newTodo = modifyTodoList (map putter)
   where 
     putter :: Todo -> Todo 
     putter oldTodo = 
-      if oldTodo.id /= uuid then oldTodo 
-      else oldTodo { completed = if toggle then not oldTodo.completed else oldTodo.completed
-                   , name = if newName/="" then newName else oldTodo.name
-                   , knownUnSynced = False}
+      if oldTodo.id == newTodo.id then newTodo { knownUnSynced = False} 
+      else oldTodo
 
 replaceTodo :: Todo -> TodoVar -> IO ()
 replaceTodo newTodo = modifyTodoList (map replaceIfSameId)

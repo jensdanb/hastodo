@@ -6,7 +6,7 @@
 module Api where
 
 import Servant
-import Models (State(State, todos), TodoList, Todo(..), UUID, PutData, 
+import Models (State(State, todos), TodoList, Todo(..), UUID, 
     initialize, insertTodo, insertMocks, deleteTodo, putTodo, insertTodos, todoExists, overlap')
 import Plumbing (runServerWithCors)
 import Control.Concurrent.STM (readTVarIO)
@@ -110,13 +110,13 @@ handleDelTodo uuid = do
     liftIO $ deleteTodo uuid todoVar
     return uuid
 
-type PutTodo = "putTodo" :> ReqBody '[JSON] PutData :> Put '[JSON] PutData
+type PutTodo = "putTodo" :> ReqBody '[JSON] Todo :> Put '[JSON] Todo
 
-handlePutTodo :: PutData -> AppM PutData
-handlePutTodo putData = do
+handlePutTodo :: Todo -> AppM Todo
+handlePutTodo newTodo = do
     State{todos = todoVar} <- ask
-    liftIO $ putTodo putData todoVar
-    return putData
+    liftIO $ putTodo newTodo todoVar
+    return newTodo
 
 error400idIsUsed :: Todo -> ServerError
 error400idIsUsed newTodo = err400 { errBody = "Todo with ID " <> (encodeUtf8 newTodo.id) <> "already exists" }
