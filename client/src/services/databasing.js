@@ -1,7 +1,8 @@
-import {openDB} from 'idb'
+import {openDB, deleteDB} from 'idb'
 
-const todoDBName = 'pending-todos';
+const todoDBName = 'todoDb';
 const todoDBVersion = 1;
+const todoListStoreName = 'todoList'
 
 async function openTodoDB () {
     return await openDB(todoDBName, todoDBVersion);
@@ -13,27 +14,25 @@ function notEmpty (cacheResult) {
     else return false;
 };
 
+
+function createTodoStore (db) {
+    const todoListStore = db.createObjectStore(todoListStoreName, { autoIncrement: true });
+    todoListStore.createIndex('id', 'id', {unique: true});
+};
+
 async function createTodoDB () {
     const dbPromise = await openDB(todoDBName, todoDBVersion, {
         upgrade (db, oldVersion) {
-            const createStores = () => {
-                const postsStore = db.createObjectStore('post', { autoIncrement: true });
-                postsStore.createIndex('id', 'id', {unique: true});
-            
-                const putsStore = db.createObjectStore('put', { autoIncrement: true });
-                putsStore.createIndex('id', 'id', {unique: true});
-
-                const todoListStore = db.createObjectStore('todoList', { autoIncrement: true });
-            };
             switch (oldVersion) {
                 case 0: 
-                    createStores();
+                    console.log('No DB found. Creating it.')
+                    createTodoStore(db);
                 /*
                 case 1: 
                     console.log('Version 1 found. Delete and start from scratch.')
                     db.deleteObjectStore('posts');
                     db.deleteObjectStore('puts');
-                    createStores();
+                    createTodoStore(db);
                 */
             }
         }
@@ -52,15 +51,39 @@ async function getUnsyncedTodos () {
 
 async function dbGetTodoList () {
     const db = await openTodoDB();
-    return await db.get('todoList', 1)
+    return await db.getAll(todoListStoreName)
 };
 
 async function cacheTodoList (todos) {
     const db = await openTodoDB();
-    await db.put('todoList', todos, 1);
+    const tx = db.transaction(todoListStoreName, 'readwrite')
+    await Promise.all([
+        tx.store.clear(), 
+        todos.forEach((todo) => tx.store.add(todo))
+    ])
 };
 
-export { cacheTodoList, dbGetTodoList, createTodoDB, cacheFailedTodo, getUnsyncedTodos };
+async function dbAddTodo(todo) {
+    const db = await openTodoDB();
+    await db.add(todoListStoreName, todo);
+}
+
+async function dbPutTodo (todo) {
+    const db = await openTodoDB();
+    const tx = db.transaction(todoListStoreName, 'readwrite');
+    const store = tx.store;
+    const index = store.index('id')
+    const primaryKey = await index.getKey(todo.id);
+    if (primaryKey === undefined) {
+        console.log('Item not found');
+        return;
+    }
+    await store.put(todo, primaryKey);
+    
+    tx.done;
+};
+
+export { cacheTodoList, dbGetTodoList, createTodoDB, dbAddTodo, dbPutTodo };
 
 // --- Junk --- 
 

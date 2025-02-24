@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { netGetTodos, netPostTodo, netDelTodo, netPostTodos, netPutTodo } from "../../services/networking";
-import { cacheTodoList, dbGetTodoList, cacheFailedTodo } from "../../services/databasing";
+import { netGetTodos, netPostTodo, netDelTodo, netPostTodos } from "../../services/networking";
+import { cacheTodoList, dbGetTodoList, dbAddTodo, dbPutTodo } from "../../services/databasing";
 import { Todo, Form, FilterButton, PwaController } from "./Components";
 
 
@@ -26,20 +26,33 @@ function TodoApp({initialFilter}) {
     // todos :: [{ completed :: bool, id :: string, name :: string, knownUnSynced :: bool }]
     const todos = useQuery({ 
         queryKey: ['todos'], 
-        queryFn: async () => {
-            return await dbGetTodoList();
-            }
+        queryFn: dbGetTodoList
     });
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
+    const netInvalidateTodos = async () => {
+        const serverTodos = await netGetTodos()
+            .then((responseJson) => {
+                cacheTodoList(responseJson);
+                invalidateTodos();
+            })
+            .catch(invalidateTodos)
+    }
+    netInvalidateTodos();
 
 
     const addTodoMutation = useMutation({
         mutationFn: async (name) => {
             const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, knownUnSynced: true }; 
             return netPostTodo(newTask)
+                .then(async () => {
+                    await dbAddTodo({...newTask, knownUnSynced: false})
+                    invalidateTodos();
+                })
                 .catch(async (error) => {
-                    await cacheFailedTodo('post', newTask);
+                    dbAddTodo(newTask);
+                    console.log('Failed to post todo. Store local copy');
+                    invalidateTodos();
                 });
         },
         onSettled: invalidateTodos,
@@ -60,10 +73,11 @@ function TodoApp({initialFilter}) {
     function todoComponent(todoData) { 
         return <Todo
                     id={todoData.id}
+                    key={todoData.id}
                     name={todoData.name}
                     completed={todoData.completed}
                     knownUnSynced={todoData.knownUnSynced}
-                    key={todoData.id + todoData.name + todoData.completed}
+                    todoData={todoData}
                     invalidateTodoList={invalidateTodos}
                     deleteTask={delTodoMutation.mutate}
                 />

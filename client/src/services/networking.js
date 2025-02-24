@@ -59,8 +59,8 @@ async function netPostTodos(newTodos) { // Array
     return await modifyingQuery('/postTodos', newTodos);
 };
 
-async function netPutTodo({id, toggle, newName}) {
-    await modifyingQuery('/putTodo', [id, toggle, newName]);
+async function netPutTodo(newTodo) {
+    await modifyingQuery('/putTodo', newTodo);
 };
 
 async function netDelTodo(id) {

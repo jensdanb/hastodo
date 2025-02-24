@@ -1,17 +1,26 @@
 import {useState} from "react"; 
 import { useMutation } from "@tanstack/react-query";
 import { netPutTodo } from "../../../services/networking";
+import { dbPutTodo } from "../../../services/databasing";
 
 function Todo(props) {
     
     const [isEditing, setIsEditing] = useState(false);
     
     const putTodoMutation = useMutation({
-            mutationFn: netPutTodo,
-            onSettled: props.invalidateTodoList,
-            mutationKey: ['putTodo']
-        })
-    const { isPending, submittedAt, variables, mutate, isError } = putTodoMutation;
+        mutationFn: async (newTask) => {
+            
+            return netPutTodo(newTask)
+                .then(async () => {
+                    dbPutTodo({...newTask, knownUnSynced: false});
+                })
+                .catch(async (error) => {
+                    console.log('Failed to put todo. Store local copy');
+                    dbPutTodo(newTask);
+            });
+        },
+        onSettled: props.invalidateTodoList
+    })
         
     if (isEditing) {
         return <EditingTodo 
@@ -22,7 +31,7 @@ function Todo(props) {
     } else 
         return <ViewTodo 
                     props={props} 
-                    toggleTaskCompleted={mutate}
+                    toggleTaskCompleted={putTodoMutation.mutate}
                     setIsEditing={setIsEditing}
                 />;
   }
@@ -38,7 +47,8 @@ function EditingTodo({props, submitEdit, setIsEditing}) {
     function submitEditValid(event) {
         event.preventDefault();
         if (newName != "") {
-            submitEdit({id: props.id, toggle: false, newName: newName});
+            const newTask = { ...props.todoData, name: newName, knownUnSynced: true };
+            submitEdit(newTask);
             setIsEditing(false);
         };
     }
@@ -82,7 +92,7 @@ function ViewTodo({props, toggleTaskCompleted, setIsEditing}) {
                     id={props.id} 
                     type="checkbox" 
                     checked={props.completed} 
-                    onChange={() => toggleTaskCompleted({id: props.id, toggle: true, newName: props.name})}
+                    onChange={() => toggleTaskCompleted({ ...props.todoData, completed: !props.completed, knownUnSynced: true })}
                 />
                 
                 <label className="todo-label" htmlFor={props.id}>
