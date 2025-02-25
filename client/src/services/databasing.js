@@ -14,7 +14,6 @@ function notEmpty (cacheResult) {
     else return false;
 };
 
-
 function createTodoStore (db) {
     const todoListStore = db.createObjectStore(todoListStoreName, { autoIncrement: true });
     todoListStore.createIndex('id', 'id', {unique: true});
