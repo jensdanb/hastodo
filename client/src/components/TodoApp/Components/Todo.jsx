@@ -2,6 +2,7 @@ import {useState} from "react";
 import { useMutation } from "@tanstack/react-query";
 import { netPutTodo } from "../../../services/networking";
 import { dbPutTodo } from "../../../services/databasing";
+import { mutationFunction } from "../../../services/common";
 
 function Todo(props) {
     
@@ -9,15 +10,7 @@ function Todo(props) {
     
     const putTodoMutation = useMutation({
         mutationFn: async (newTask) => {
-            
-            return netPutTodo(newTask)
-                .then(async () => {
-                    dbPutTodo({...newTask, knownUnSynced: false});
-                })
-                .catch(async (error) => {
-                    console.log('Failed to put todo. Store local copy');
-                    dbPutTodo(newTask);
-            });
+            return await mutationFunction(newTask, netPutTodo, dbPutTodo);
         },
         onSettled: props.invalidateTodoList
     })

@@ -3,7 +3,8 @@ import { nanoid } from "nanoid";
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { netGetTodos, netPostTodo, netDelTodo, netPostTodos } from "../../services/networking";
-import { cacheTodoList, dbGetTodoList, dbAddTodo, dbPutTodo } from "../../services/databasing";
+import { cacheTodoList, dbGetTodoList, dbAddTodo, dbPutTodo, dbDelTodo } from "../../services/databasing";
+import { mutationFunction } from "../../services/common";
 import { Todo, Form, FilterButton, PwaController } from "./Components";
 
 
@@ -18,7 +19,7 @@ const FILTER_NAMES = Object.keys(FILTER_MAP);
 
 function TodoApp({initialFilter}) {
 
-    const [intendedOnline, setIntendedOnline] = useState(true);
+    const [onlineMode, setOnlineMode] = useState(true);
     const [actualOnline, setActualOnline] = useState(false);
 
     const queryClient = useQueryClient()
@@ -31,35 +32,20 @@ function TodoApp({initialFilter}) {
 
     const invalidateTodos = () => {queryClient.invalidateQueries({ queryKey: ['todos'] })}
     
-    const netInvalidateTodos = async () => {
-        const serverTodos = await netGetTodos()
-            .then((responseJson) => {
-                cacheTodoList(responseJson);
-                invalidateTodos();
-            })
-            .catch(invalidateTodos)
-    }
-    netInvalidateTodos();
-
 
     const addTodoMutation = useMutation({
         mutationFn: async (name) => {
             const newTask = { id: `todo-${nanoid()}`, name: name, completed: false, knownUnSynced: true }; 
-            return netPostTodo(newTask)
-                .then(async () => {
-                    await dbAddTodo({...newTask, knownUnSynced: false})
-                })
-                .catch(async (error) => {
-                    await dbAddTodo(newTask);
-                    console.log('Failed to post todo. Store local copy');
-                });
+            return await mutationFunction(newTask, netPostTodo, dbAddTodo);
         },
         onSettled: invalidateTodos,
     });
-    // const { postIsPending, postSubmittedAt, postVariables, postMutate, postIsError } = postTodoMutation
 
     const delTodoMutation = useMutation({
-        mutationFn: (id) => {return netDelTodo(id)},
+        mutationFn: async (id) => {
+            return await netDelTodo(id)
+                .then(() => {dbDelTodo(id)})
+        },
         onSettled: invalidateTodos,
       })
     
@@ -102,12 +88,12 @@ function TodoApp({initialFilter}) {
         <div className="todoapp stack-large content">
             <h1>TodoMatic v2</h1>
             <PwaController 
-                intendedOnline={intendedOnline} 
+                intendedOnline={onlineMode} 
                 toggleOnline={() => {
-                    if (!intendedOnline) {invalidateTodos()}
-                    setIntendedOnline(intendedOnline ? false : true)
+                    if (!onlineMode) {invalidateTodos()}
+                    setOnlineMode(onlineMode ? false : true)
                 }}
-                actualOnline={actualOnline} 
+                //actualOnline={actualOnline} 
                 />
 
             <Form onSubmit={addTodoMutation.mutate}/>

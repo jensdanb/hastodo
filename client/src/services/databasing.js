@@ -72,18 +72,29 @@ async function dbPutTodo (todo) {
     const db = await openTodoDB();
     const tx = db.transaction(todoListStoreName, 'readwrite');
     const store = tx.store;
-    const index = store.index('id')
-    const primaryKey = await index.getKey(todo.id);
+    const primaryKey = await store.index('id').getKey(todo.id);
     if (primaryKey === undefined) {
         console.log('Item not found');
         return;
     }
     await store.put(todo, primaryKey);
-    
     tx.done;
 };
 
-export { cacheTodoList, dbGetTodoList, createTodoDB, dbAddTodo, dbPutTodo };
+async function dbDelTodo (todoId) {
+    const db = await openTodoDB();
+    const tx = db.transaction(todoListStoreName, 'readwrite');
+    const store = tx.store;
+    const primaryKey = await store.index('id').getKey(todoId);
+    if (primaryKey === undefined) {
+        console.log('Item not found');
+        return;
+    }
+    await store.delete(primaryKey);
+    tx.done;
+};
+
+export { cacheTodoList, dbGetTodoList, createTodoDB, dbAddTodo, dbPutTodo, dbDelTodo };
 
 // --- Junk --- 
 
